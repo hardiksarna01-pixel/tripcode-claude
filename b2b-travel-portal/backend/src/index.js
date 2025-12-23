@@ -4,6 +4,10 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 
+// Import configuration
+const db = require('./config/database');
+const redis = require('./config/redis');
+
 // Import routes
 const authRoutes = require('./routes/auth.routes');
 const flightRoutes = require('./routes/flight.routes');
@@ -15,6 +19,8 @@ const adminRoutes = require('./routes/admin.routes');
 // Import middleware
 const { errorHandler } = require('./middleware/error.middleware');
 const { authMiddleware } = require('./middleware/auth.middleware');
+const { auditMiddleware } = require('./middleware/audit.middleware');
+const { apiLimiter, authLimiter } = require('./middleware/rate-limit.middleware');
 
 const app = express();
 
@@ -26,23 +32,48 @@ app.use(cors({
 }));
 
 // Logging
-app.use(morgan('combined'));
+app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// Apply rate limiting to all API routes
+app.use('/api', apiLimiter);
+
+// Audit middleware for all routes
+app.use(auditMiddleware);
+
 // Health check
-app.get('/health', (req, res) => {
-    res.json({ 
-        status: 'healthy', 
+app.get('/health', async (req, res) => {
+    const health = {
+        status: 'healthy',
         timestamp: new Date().toISOString(),
-        version: '1.0.0'
-    });
+        version: '1.0.0',
+        services: {
+            database: 'unknown',
+            redis: 'unknown'
+        }
+    };
+
+    // Check database
+    try {
+        await db.query('SELECT 1');
+        health.services.database = 'connected';
+    } catch (error) {
+        health.services.database = 'disconnected';
+        health.status = 'degraded';
+    }
+
+    // Check Redis
+    health.services.redis = redis.isAvailable() ? 'connected' : 'disconnected';
+
+    const statusCode = health.status === 'healthy' ? 200 : 503;
+    res.status(statusCode).json(health);
 });
 
 // API Routes
-app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/auth', authLimiter, authRoutes);
 app.use('/api/v1/flights', authMiddleware, flightRoutes);
 app.use('/api/v1/bookings', authMiddleware, bookingRoutes);
 app.use('/api/v1/wallet', authMiddleware, walletRoutes);
@@ -62,9 +93,57 @@ app.use((req, res) => {
 
 const PORT = process.env.PORT || 3001;
 
-app.listen(PORT, () => {
-    console.log(`🚀 B2B Travel API running on port ${PORT}`);
-    console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
+/**
+ * Initialize application
+ */
+async function startServer() {
+    try {
+        // Connect to database
+        console.log('Connecting to database...');
+        await db.connect();
+
+        // Connect to Redis (optional - continues without it)
+        console.log('Connecting to Redis...');
+        await redis.connect();
+
+        // Start server
+        app.listen(PORT, () => {
+            console.log(`\n🚀 B2B Travel API running on port ${PORT}`);
+            console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
+            console.log(`📊 Health check: http://localhost:${PORT}/health\n`);
+        });
+
+    } catch (error) {
+        console.error('Failed to start server:', error);
+        process.exit(1);
+    }
+}
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+    console.log('SIGTERM received. Shutting down gracefully...');
+    await db.close();
+    await redis.close();
+    process.exit(0);
 });
+
+process.on('SIGINT', async () => {
+    console.log('SIGINT received. Shutting down gracefully...');
+    await db.close();
+    await redis.close();
+    process.exit(0);
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught Exception:', error);
+    process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+startServer();
 
 module.exports = app;
