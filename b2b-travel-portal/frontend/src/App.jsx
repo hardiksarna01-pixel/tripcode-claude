@@ -10,11 +10,13 @@ import RegisterPage from './components/auth/RegisterPage';
 import Dashboard from './components/Dashboard';
 import FlightSearchPage from './components/FlightSearchPage';
 import FlightBookingPage from './components/FlightBookingPage';
+import AgentSettings from './components/AgentSettings';
 
 // Admin Components
 import SchemeManagement from './components/admin/SchemeManagement';
 import ApiProviderManagement from './components/admin/ApiProviderManagement';
 import AgentSignupApprovals from './components/admin/AgentSignupApprovals';
+import AgentDefaultSettings from './components/admin/AgentDefaultSettings';
 
 /**
  * Protected Route Component
@@ -102,6 +104,22 @@ const App = () => {
                         </ProtectedRoute>
                     }
                 />
+                <Route
+                    path="/settings"
+                    element={
+                        <ProtectedRoute>
+                            <AgentSettings />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/profile"
+                    element={
+                        <ProtectedRoute>
+                            <AgentSettings />
+                        </ProtectedRoute>
+                    }
+                />
 
                 {/* Admin Routes */}
                 <Route
@@ -125,6 +143,14 @@ const App = () => {
                     element={
                         <ProtectedRoute>
                             <AgentSignupApprovals />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/admin/agent-settings"
+                    element={
+                        <ProtectedRoute>
+                            <AgentDefaultSettings />
                         </ProtectedRoute>
                     }
                 />

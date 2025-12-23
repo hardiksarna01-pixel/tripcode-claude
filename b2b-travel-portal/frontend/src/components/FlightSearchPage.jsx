@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import useFlightStore from '../store/flightStore';
+import useAuthStore from '../store/authStore';
 
 // Fare type configuration with icons and colors
 const FARE_TYPE_CONFIG = {
@@ -24,16 +25,39 @@ const FlightSearchPage = () => {
     swapCities
   } = useFlightStore();
 
-  const [tripType, setTripType] = useState('roundtrip');
+  const { agent } = useAuthStore();
+
+  // Get agent preferences with defaults
+  const agentPreferences = agent?.preferences || {
+    defaultTripType: 'ONE_WAY',
+    autoSelectTripType: true,
+    fareDisplayMode: 'TOTAL',
+    defaultClassOfTravel: 0,
+    defaultAdults: 1,
+    defaultChildren: 0,
+    defaultInfants: 0,
+    showFareBreakdown: true
+  };
+
+  // Map trip type from preferences
+  const getInitialTripType = () => {
+    switch (agentPreferences.defaultTripType) {
+      case 'ROUND_TRIP': return 'roundtrip';
+      case 'MULTI_CITY': return 'multicity';
+      default: return 'oneway';
+    }
+  };
+
+  const [tripType, setTripType] = useState(getInitialTripType());
   const [localParams, setLocalParams] = useState({
     origin: '',
     destination: '',
     departureDate: '',
     returnDate: '',
-    adults: 1,
-    children: 0,
-    infants: 0,
-    classOfTravel: 'economy',
+    adults: agentPreferences.defaultAdults || 1,
+    children: agentPreferences.defaultChildren || 0,
+    infants: agentPreferences.defaultInfants || 0,
+    classOfTravel: ['economy', 'business', 'first'][agentPreferences.defaultClassOfTravel] || 'economy',
     fareType: 'REGULAR'
   });
 
@@ -41,6 +65,20 @@ const FlightSearchPage = () => {
   useEffect(() => {
     loadFareTypes();
   }, [loadFareTypes]);
+
+  // Update defaults when agent preferences change
+  useEffect(() => {
+    if (agent?.preferences) {
+      setTripType(getInitialTripType());
+      setLocalParams(prev => ({
+        ...prev,
+        adults: agentPreferences.defaultAdults || prev.adults,
+        children: agentPreferences.defaultChildren || prev.children,
+        infants: agentPreferences.defaultInfants || prev.infants,
+        classOfTravel: ['economy', 'business', 'first'][agentPreferences.defaultClassOfTravel] || prev.classOfTravel
+      }));
+    }
+  }, [agent?.preferences]);
 
   // Popular airports
   const airports = [
@@ -64,18 +102,27 @@ const FlightSearchPage = () => {
   ];
 
   const handleSearch = async () => {
+    // Auto-select trip type logic:
+    // If round trip is selected but no return date, auto-select one way
+    let effectiveTripType = tripType;
+    if (tripType === 'roundtrip' && !localParams.returnDate && agentPreferences.autoSelectTripType) {
+      effectiveTripType = 'oneway';
+    }
+
     // Map local params to API format
     const apiParams = {
       origin: localParams.origin,
       destination: localParams.destination,
       travelDate: localParams.departureDate,
-      returnDate: tripType === 'roundtrip' ? localParams.returnDate : undefined,
+      returnDate: effectiveTripType === 'roundtrip' ? localParams.returnDate : undefined,
       adults: localParams.adults,
       children: localParams.children,
       infants: localParams.infants,
       classOfTravel: localParams.classOfTravel === 'economy' ? 0 : localParams.classOfTravel === 'business' ? 1 : 2,
-      tripType: tripType === 'oneway' ? 0 : 1,
-      fareType: localParams.fareType
+      tripType: effectiveTripType === 'oneway' ? 0 : 1,
+      fareType: localParams.fareType,
+      // Include fare display preference for backend processing
+      fareDisplayMode: agentPreferences.fareDisplayMode
     };
 
     setSearchParams(apiParams);
@@ -291,6 +338,9 @@ const FlightSearchPage = () => {
             <FlightResults
               results={searchResults}
               fareTypeInfo={fareTypeInfo}
+              fareDisplayMode={agentPreferences.fareDisplayMode}
+              passengerCount={localParams.adults + localParams.children + localParams.infants}
+              showFareBreakdown={agentPreferences.showFareBreakdown}
             />
           </div>
         )}
@@ -345,18 +395,50 @@ const FareTypeInfoBanner = ({ fareTypeInfo }) => {
 };
 
 // Flight Results Component
-const FlightResults = ({ results, fareTypeInfo }) => {
+const FlightResults = ({ results, fareTypeInfo, fareDisplayMode = 'TOTAL', passengerCount = 1, showFareBreakdown = true }) => {
   const [selectedFlight, setSelectedFlight] = useState(null);
   const [sortBy, setSortBy] = useState('price');
+  const [displayMode, setDisplayMode] = useState(fareDisplayMode);
 
   // Use mock data if no real data
   const flights = results.trips?.[0]?.flights || mockFlightResults.flights;
+
+  // Calculate display fare based on mode
+  const getDisplayFare = (price) => {
+    if (displayMode === 'PER_PERSON') {
+      return Math.round(price / passengerCount);
+    }
+    return price;
+  };
 
   return (
     <div className="flex gap-6">
       {/* Filters Sidebar */}
       <div className="w-64 bg-white rounded-lg shadow-md p-4">
         <h3 className="font-bold mb-4">Filters</h3>
+
+        {/* Fare Display Mode Toggle */}
+        <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+          <h4 className="font-medium text-sm text-gray-700 mb-2">Fare Display</h4>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setDisplayMode('TOTAL')}
+              className={`flex-1 py-1 px-2 text-xs rounded ${
+                displayMode === 'TOTAL' ? 'bg-blue-600 text-white' : 'bg-white border'
+              }`}
+            >
+              Total
+            </button>
+            <button
+              onClick={() => setDisplayMode('PER_PERSON')}
+              className={`flex-1 py-1 px-2 text-xs rounded ${
+                displayMode === 'PER_PERSON' ? 'bg-blue-600 text-white' : 'bg-white border'
+              }`}
+            >
+              Per Person
+            </button>
+          </div>
+        </div>
 
         {/* Fare Type Filter Info */}
         {fareTypeInfo && fareTypeInfo.requested !== 'REGULAR' && (
@@ -449,6 +531,9 @@ const FlightResults = ({ results, fareTypeInfo }) => {
             isSelected={selectedFlight === index}
             onSelect={() => setSelectedFlight(index)}
             fareTypeInfo={fareTypeInfo}
+            displayMode={displayMode}
+            passengerCount={passengerCount}
+            showFareBreakdown={showFareBreakdown}
           />
         ))}
       </div>
@@ -457,9 +542,14 @@ const FlightResults = ({ results, fareTypeInfo }) => {
 };
 
 // Individual Flight Card
-const FlightCard = ({ flight, isSelected, onSelect, fareTypeInfo }) => {
+const FlightCard = ({ flight, isSelected, onSelect, fareTypeInfo, displayMode = 'TOTAL', passengerCount = 1, showFareBreakdown = true }) => {
   const isSpecialFare = fareTypeInfo?.specialFaresAvailable && fareTypeInfo?.requested !== 'REGULAR';
   const config = isSpecialFare ? FARE_TYPE_CONFIG[fareTypeInfo.requested] : null;
+
+  // Calculate display fare based on mode
+  const totalFare = flight.price || 0;
+  const displayFare = displayMode === 'PER_PERSON' ? Math.round(totalFare / passengerCount) : totalFare;
+  const fareLabel = displayMode === 'PER_PERSON' ? 'per person' : `total (${passengerCount} pax)`;
 
   return (
     <div
@@ -511,8 +601,11 @@ const FlightCard = ({ flight, isSelected, onSelect, fareTypeInfo }) => {
               </span>
             </div>
           )}
-          <div className="text-2xl font-bold text-blue-600">₹{flight.price?.toLocaleString()}</div>
-          <div className="text-sm text-gray-500">per adult</div>
+          <div className="text-2xl font-bold text-blue-600">₹{displayFare?.toLocaleString()}</div>
+          <div className="text-sm text-gray-500">{fareLabel}</div>
+          {displayMode === 'PER_PERSON' && passengerCount > 1 && (
+            <div className="text-xs text-gray-400">Total: ₹{totalFare?.toLocaleString()}</div>
+          )}
           {isSpecialFare && fareTypeInfo.fareTypeDetails?.discount && (
             <div className="text-xs text-green-600 font-medium">
               {fareTypeInfo.fareTypeDetails.discount}

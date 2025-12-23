@@ -111,6 +111,15 @@ const useAuthStore = create(
                 }));
             },
 
+            updateAgentPreferences: (preferences) => {
+                set((state) => ({
+                    agent: {
+                        ...state.agent,
+                        preferences: { ...state.agent?.preferences, ...preferences }
+                    }
+                }));
+            },
+
             clearError: () => {
                 set({ error: null });
             }
