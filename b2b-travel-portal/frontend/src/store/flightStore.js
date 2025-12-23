@@ -17,12 +17,18 @@ const useFlightStore = create((set, get) => ({
         infants: 0,
         classOfTravel: 0,
         tripType: 0,
-        airlines: []
+        airlines: [],
+        fareType: 'REGULAR'
     },
     searchResults: null,
     searchKey: null,
     isSearching: false,
     searchError: null,
+    fareTypeInfo: null,
+
+    // Available fare types
+    availableFareTypes: [],
+    isLoadingFareTypes: false,
 
     // Selected Flight State
     selectedFlights: [],
@@ -51,15 +57,40 @@ const useFlightStore = create((set, get) => ({
         }));
     },
 
+    loadFareTypes: async () => {
+        set({ isLoadingFareTypes: true });
+        try {
+            const response = await flightApi.getFareTypes();
+            set({
+                availableFareTypes: response.data,
+                isLoadingFareTypes: false
+            });
+            return response.data;
+        } catch (error) {
+            set({ isLoadingFareTypes: false });
+            // Default fare types if API fails
+            set({
+                availableFareTypes: [
+                    { code: 'REGULAR', name: 'Regular Fare', discount: null },
+                    { code: 'STUDENT', name: 'Student Fare', discount: 'Up to 10% off' },
+                    { code: 'SENIOR_CITIZEN', name: 'Senior Citizen', discount: 'Up to 8% off' },
+                    { code: 'ARMED_FORCES', name: 'Armed Forces', discount: 'Up to 15% off' },
+                    { code: 'DOCTOR_NURSE', name: 'Doctor & Nurses', discount: 'Up to 10% off' }
+                ]
+            });
+        }
+    },
+
     searchFlights: async () => {
         const { searchParams } = get();
-        set({ isSearching: true, searchError: null, searchResults: null });
+        set({ isSearching: true, searchError: null, searchResults: null, fareTypeInfo: null });
 
         try {
             const response = await flightApi.search(searchParams);
             set({
                 searchResults: response.data,
                 searchKey: response.data.searchKey,
+                fareTypeInfo: response.data.fareTypeInfo,
                 isSearching: false
             });
             return response.data;
@@ -221,7 +252,8 @@ const useFlightStore = create((set, get) => ({
             seatMap: null,
             selectedSeats: [],
             searchError: null,
-            repriceError: null
+            repriceError: null,
+            fareTypeInfo: null
         });
     },
 

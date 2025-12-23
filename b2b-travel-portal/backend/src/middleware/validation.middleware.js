@@ -1,4 +1,5 @@
 const Joi = require('joi');
+const { FARE_TYPE_CODES } = require('../config/fareTypes');
 
 /**
  * Validation middleware factory
@@ -48,6 +49,8 @@ const searchSchema = Joi.object({
     classOfTravel: Joi.number().integer().min(0).max(3).default(0),
     tripType: Joi.number().integer().min(0).max(2).default(0),
     airlines: Joi.array().items(Joi.string().length(2)).default([]),
+    fareType: Joi.string().valid(...FARE_TYPE_CODES).default('REGULAR'),
+    // Legacy fields (still supported for backwards compatibility)
     seniorCitizen: Joi.boolean().default(false),
     studentFare: Joi.boolean().default(false),
     defenceFare: Joi.boolean().default(false)

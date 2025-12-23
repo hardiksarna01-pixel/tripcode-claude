@@ -11,8 +11,15 @@ const { validateSearch, validateReprice, validateBooking } = require('../middlew
 router.get('/sectors', flightController.getSectorAvailability);
 
 /**
+ * @route   GET /api/v1/flights/fare-types
+ * @desc    Get available special fare types
+ * @access  Private
+ */
+router.get('/fare-types', flightController.getFareTypes);
+
+/**
  * @route   POST /api/v1/flights/search
- * @desc    Search for available flights
+ * @desc    Search for available flights with special fare support
  * @access  Private
  */
 router.post('/search', validateSearch, flightController.searchFlights);

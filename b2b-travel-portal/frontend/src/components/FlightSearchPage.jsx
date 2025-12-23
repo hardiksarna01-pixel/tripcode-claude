@@ -1,8 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import useFlightStore from '../store/flightStore';
+
+// Fare type configuration with icons and colors
+const FARE_TYPE_CONFIG = {
+  REGULAR: { icon: '✈️', color: 'gray', bgColor: 'bg-gray-100', borderColor: 'border-gray-300' },
+  STUDENT: { icon: '🎓', color: 'blue', bgColor: 'bg-blue-50', borderColor: 'border-blue-400' },
+  SENIOR_CITIZEN: { icon: '👴', color: 'purple', bgColor: 'bg-purple-50', borderColor: 'border-purple-400' },
+  ARMED_FORCES: { icon: '🎖️', color: 'green', bgColor: 'bg-green-50', borderColor: 'border-green-400' },
+  DOCTOR_NURSE: { icon: '⚕️', color: 'red', bgColor: 'bg-red-50', borderColor: 'border-red-400' },
+  GOVERNMENT: { icon: '🏛️', color: 'orange', bgColor: 'bg-orange-50', borderColor: 'border-orange-400' }
+};
 
 const FlightSearchPage = () => {
+  const {
+    searchParams,
+    setSearchParams,
+    searchFlights,
+    isSearching,
+    searchResults,
+    fareTypeInfo,
+    availableFareTypes,
+    loadFareTypes,
+    swapCities
+  } = useFlightStore();
+
   const [tripType, setTripType] = useState('roundtrip');
-  const [searchParams, setSearchParams] = useState({
+  const [localParams, setLocalParams] = useState({
     origin: '',
     destination: '',
     departureDate: '',
@@ -11,12 +34,13 @@ const FlightSearchPage = () => {
     children: 0,
     infants: 0,
     classOfTravel: 'economy',
-    directFlight: false,
-    specialFare: ''
+    fareType: 'REGULAR'
   });
 
-  const [searchResults, setSearchResults] = useState(null);
-  const [loading, setLoading] = useState(false);
+  // Load fare types on component mount
+  useEffect(() => {
+    loadFareTypes();
+  }, [loadFareTypes]);
 
   // Popular airports
   const airports = [
@@ -30,30 +54,49 @@ const FlightSearchPage = () => {
     { code: 'GOI', city: 'Goa', name: 'Goa International' }
   ];
 
+  // Get fare types from store or use defaults
+  const fareTypes = availableFareTypes.length > 0 ? availableFareTypes : [
+    { code: 'REGULAR', name: 'Regular', discount: null },
+    { code: 'STUDENT', name: 'Student', discount: 'Up to 10% off' },
+    { code: 'SENIOR_CITIZEN', name: 'Senior Citizen', discount: 'Up to 8% off' },
+    { code: 'ARMED_FORCES', name: 'Armed Forces', discount: 'Up to 15% off' },
+    { code: 'DOCTOR_NURSE', name: 'Doctor & Nurses', discount: 'Up to 10% off' }
+  ];
+
   const handleSearch = async () => {
-    setLoading(true);
+    // Map local params to API format
+    const apiParams = {
+      origin: localParams.origin,
+      destination: localParams.destination,
+      travelDate: localParams.departureDate,
+      returnDate: tripType === 'roundtrip' ? localParams.returnDate : undefined,
+      adults: localParams.adults,
+      children: localParams.children,
+      infants: localParams.infants,
+      classOfTravel: localParams.classOfTravel === 'economy' ? 0 : localParams.classOfTravel === 'business' ? 1 : 2,
+      tripType: tripType === 'oneway' ? 0 : 1,
+      fareType: localParams.fareType
+    };
+
+    setSearchParams(apiParams);
+
     try {
-      // In real app, call API
-      // const response = await flightService.search(searchParams);
-      // setSearchResults(response.data);
-      
-      // Mock response for demo
-      setTimeout(() => {
-        setSearchResults(mockFlightResults);
-        setLoading(false);
-      }, 1500);
+      await searchFlights();
     } catch (error) {
       console.error('Search failed:', error);
-      setLoading(false);
     }
   };
 
-  const swapCities = () => {
-    setSearchParams(prev => ({
+  const handleSwapCities = () => {
+    setLocalParams(prev => ({
       ...prev,
       origin: prev.destination,
       destination: prev.origin
     }));
+  };
+
+  const handleFareTypeChange = (fareCode) => {
+    setLocalParams(prev => ({ ...prev, fareType: fareCode }));
   };
 
   return (
@@ -84,8 +127,8 @@ const FlightSearchPage = () => {
             <div className="col-span-3 relative">
               <label className="block text-sm font-medium text-gray-500 mb-1">FROM</label>
               <select
-                value={searchParams.origin}
-                onChange={(e) => setSearchParams(prev => ({ ...prev, origin: e.target.value }))}
+                value={localParams.origin}
+                onChange={(e) => setLocalParams(prev => ({ ...prev, origin: e.target.value }))}
                 className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none text-lg"
               >
                 <option value="">Select City</option>
@@ -100,7 +143,7 @@ const FlightSearchPage = () => {
             {/* Swap Button */}
             <div className="col-span-1 flex items-end justify-center pb-3">
               <button
-                onClick={swapCities}
+                onClick={handleSwapCities}
                 className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center hover:bg-blue-200 transition"
               >
                 ⇄
@@ -111,8 +154,8 @@ const FlightSearchPage = () => {
             <div className="col-span-3">
               <label className="block text-sm font-medium text-gray-500 mb-1">TO</label>
               <select
-                value={searchParams.destination}
-                onChange={(e) => setSearchParams(prev => ({ ...prev, destination: e.target.value }))}
+                value={localParams.destination}
+                onChange={(e) => setLocalParams(prev => ({ ...prev, destination: e.target.value }))}
                 className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none text-lg"
               >
                 <option value="">Select City</option>
@@ -129,8 +172,8 @@ const FlightSearchPage = () => {
               <label className="block text-sm font-medium text-gray-500 mb-1">DEPARTURE</label>
               <input
                 type="date"
-                value={searchParams.departureDate}
-                onChange={(e) => setSearchParams(prev => ({ ...prev, departureDate: e.target.value }))}
+                value={localParams.departureDate}
+                onChange={(e) => setLocalParams(prev => ({ ...prev, departureDate: e.target.value }))}
                 className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
               />
             </div>
@@ -141,8 +184,8 @@ const FlightSearchPage = () => {
                 <label className="block text-sm font-medium text-gray-500 mb-1">RETURN</label>
                 <input
                   type="date"
-                  value={searchParams.returnDate}
-                  onChange={(e) => setSearchParams(prev => ({ ...prev, returnDate: e.target.value }))}
+                  value={localParams.returnDate}
+                  onChange={(e) => setLocalParams(prev => ({ ...prev, returnDate: e.target.value }))}
                   className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
                 />
               </div>
@@ -152,44 +195,83 @@ const FlightSearchPage = () => {
             <div className="col-span-2">
               <label className="block text-sm font-medium text-gray-500 mb-1">TRAVELLERS & CLASS</label>
               <div className="p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500">
-                <div className="font-semibold">{searchParams.adults + searchParams.children + searchParams.infants} Traveller(s)</div>
-                <div className="text-sm text-gray-500 capitalize">{searchParams.classOfTravel}</div>
+                <div className="font-semibold">{localParams.adults + localParams.children + localParams.infants} Traveller(s)</div>
+                <div className="text-sm text-gray-500 capitalize">{localParams.classOfTravel}</div>
               </div>
             </div>
           </div>
 
-          {/* Special Fares */}
-          <div className="flex space-x-4 mt-4">
-            <span className="text-sm text-gray-500">Special Fares:</span>
-            {['Regular', 'Student', 'Senior Citizen', 'Armed Forces', 'Doctor & Nurses'].map((fare) => (
-              <label key={fare} className="flex items-center text-sm">
-                <input
-                  type="radio"
-                  name="specialFare"
-                  value={fare.toLowerCase()}
-                  checked={searchParams.specialFare === fare.toLowerCase()}
-                  onChange={(e) => setSearchParams(prev => ({ ...prev, specialFare: e.target.value }))}
-                  className="mr-1"
-                />
-                {fare}
-              </label>
-            ))}
+          {/* Special Fares Section */}
+          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+            <div className="flex items-center mb-3">
+              <span className="text-sm font-semibold text-gray-700 mr-2">Select Fare Type:</span>
+              <span className="text-xs text-gray-500">(Special fares may offer additional discounts)</span>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              {fareTypes.map((fare) => {
+                const config = FARE_TYPE_CONFIG[fare.code] || FARE_TYPE_CONFIG.REGULAR;
+                const isSelected = localParams.fareType === fare.code;
+
+                return (
+                  <button
+                    key={fare.code}
+                    onClick={() => handleFareTypeChange(fare.code)}
+                    className={`flex items-center px-4 py-2 rounded-lg border-2 transition-all ${
+                      isSelected
+                        ? `${config.bgColor} ${config.borderColor} ring-2 ring-offset-1 ring-${config.color}-300`
+                        : 'bg-white border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <span className="mr-2 text-lg">{config.icon}</span>
+                    <div className="text-left">
+                      <div className={`font-medium text-sm ${isSelected ? `text-${config.color}-700` : 'text-gray-700'}`}>
+                        {fare.name}
+                      </div>
+                      {fare.discount && (
+                        <div className={`text-xs ${isSelected ? `text-${config.color}-600` : 'text-gray-500'}`}>
+                          {fare.discount}
+                        </div>
+                      )}
+                    </div>
+                    {isSelected && (
+                      <span className="ml-2 text-green-600">✓</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Fare type info tooltip */}
+            {localParams.fareType !== 'REGULAR' && (
+              <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded-md">
+                <p className="text-xs text-yellow-700">
+                  <strong>Note:</strong> {
+                    localParams.fareType === 'STUDENT' ? 'Valid student ID required at check-in. Age: 12-26 years.' :
+                    localParams.fareType === 'SENIOR_CITIZEN' ? 'Valid age proof required. Passenger must be 60+ years.' :
+                    localParams.fareType === 'ARMED_FORCES' ? 'Defence ID card required at check-in.' :
+                    localParams.fareType === 'DOCTOR_NURSE' ? 'Medical council registration or hospital ID required.' :
+                    localParams.fareType === 'GOVERNMENT' ? 'Government ID and LTC certificate required.' :
+                    'Special documentation may be required.'
+                  }
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Search Button */}
           <div className="flex justify-center mt-6">
             <button
               onClick={handleSearch}
-              disabled={loading || !searchParams.origin || !searchParams.destination || !searchParams.departureDate}
+              disabled={isSearching || !localParams.origin || !localParams.destination || !localParams.departureDate}
               className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-12 py-4 rounded-full font-bold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? (
+              {isSearching ? (
                 <span className="flex items-center">
                   <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
-                  Searching...
+                  Searching {localParams.fareType !== 'REGULAR' ? `${fareTypes.find(f => f.code === localParams.fareType)?.name || ''} ` : ''}Fares...
                 </span>
               ) : (
                 'SEARCH FLIGHTS'
@@ -198,10 +280,18 @@ const FlightSearchPage = () => {
           </div>
         </div>
 
+        {/* Fare Type Info Banner (shown after search) */}
+        {fareTypeInfo && (
+          <FareTypeInfoBanner fareTypeInfo={fareTypeInfo} />
+        )}
+
         {/* Search Results */}
         {searchResults && (
           <div className="mt-8">
-            <FlightResults results={searchResults} />
+            <FlightResults
+              results={searchResults}
+              fareTypeInfo={fareTypeInfo}
+            />
           </div>
         )}
       </div>
@@ -209,22 +299,76 @@ const FlightSearchPage = () => {
   );
 };
 
+// Fare Type Info Banner Component
+const FareTypeInfoBanner = ({ fareTypeInfo }) => {
+  if (!fareTypeInfo) return null;
+
+  const { requested, applied, fallbackUsed, specialFaresAvailable, message } = fareTypeInfo;
+  const config = FARE_TYPE_CONFIG[requested] || FARE_TYPE_CONFIG.REGULAR;
+
+  if (fallbackUsed) {
+    return (
+      <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg flex items-center">
+        <span className="text-2xl mr-3">⚠️</span>
+        <div>
+          <p className="font-medium text-amber-800">
+            {message || `${fareTypeInfo.fareTypeDetails?.name} not available for this route`}
+          </p>
+          <p className="text-sm text-amber-600">
+            Showing best available regular fares instead. Try different dates or routes for special fares.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (specialFaresAvailable && requested !== 'REGULAR') {
+    return (
+      <div className={`mt-4 p-4 ${config.bgColor} border ${config.borderColor} rounded-lg flex items-center`}>
+        <span className="text-2xl mr-3">{config.icon}</span>
+        <div>
+          <p className="font-medium text-gray-800">
+            {message || `Showing ${fareTypeInfo.fareTypeDetails?.name}`}
+          </p>
+          <p className="text-sm text-gray-600">
+            {fareTypeInfo.fareTypeDetails?.eligibility}
+          </p>
+        </div>
+        <span className="ml-auto bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+          Special Fare Applied
+        </span>
+      </div>
+    );
+  }
+
+  return null;
+};
+
 // Flight Results Component
-const FlightResults = ({ results }) => {
+const FlightResults = ({ results, fareTypeInfo }) => {
   const [selectedFlight, setSelectedFlight] = useState(null);
   const [sortBy, setSortBy] = useState('price');
-  const [filters, setFilters] = useState({
-    stops: [],
-    airlines: [],
-    priceRange: [0, 50000]
-  });
+
+  // Use mock data if no real data
+  const flights = results.trips?.[0]?.flights || mockFlightResults.flights;
 
   return (
     <div className="flex gap-6">
       {/* Filters Sidebar */}
       <div className="w-64 bg-white rounded-lg shadow-md p-4">
         <h3 className="font-bold mb-4">Filters</h3>
-        
+
+        {/* Fare Type Filter Info */}
+        {fareTypeInfo && fareTypeInfo.requested !== 'REGULAR' && (
+          <div className="mb-4 p-2 bg-blue-50 rounded-lg">
+            <h4 className="font-medium text-sm text-blue-800 mb-1">Active Fare Type</h4>
+            <p className="text-xs text-blue-600">
+              {fareTypeInfo.fareTypeDetails?.name}
+              {fareTypeInfo.fallbackUsed && ' (Unavailable)'}
+            </p>
+          </div>
+        )}
+
         {/* Stops Filter */}
         <div className="mb-4">
           <h4 className="font-medium mb-2">Stops</h4>
@@ -268,7 +412,12 @@ const FlightResults = ({ results }) => {
         {/* Sort Bar */}
         <div className="bg-white rounded-lg shadow-md p-4 mb-4 flex items-center justify-between">
           <div className="text-sm text-gray-600">
-            Found {results.flights?.length || 0} flights
+            Found {flights?.length || 0} flights
+            {fareTypeInfo?.specialFaresAvailable && (
+              <span className="ml-2 text-green-600 font-medium">
+                • Special fares available
+              </span>
+            )}
           </div>
           <div className="flex space-x-4">
             <button
@@ -293,12 +442,13 @@ const FlightResults = ({ results }) => {
         </div>
 
         {/* Flight Cards */}
-        {results.flights?.map((flight, index) => (
+        {flights?.map((flight, index) => (
           <FlightCard
             key={index}
             flight={flight}
             isSelected={selectedFlight === index}
             onSelect={() => setSelectedFlight(index)}
+            fareTypeInfo={fareTypeInfo}
           />
         ))}
       </div>
@@ -307,82 +457,114 @@ const FlightResults = ({ results }) => {
 };
 
 // Individual Flight Card
-const FlightCard = ({ flight, isSelected, onSelect }) => (
-  <div
-    className={`bg-white rounded-lg shadow-md p-4 mb-4 cursor-pointer transition ${
-      isSelected ? 'ring-2 ring-blue-500' : 'hover:shadow-lg'
-    }`}
-    onClick={onSelect}
-  >
-    <div className="flex items-center justify-between">
-      {/* Airline Info */}
-      <div className="flex items-center space-x-4">
-        <div className="w-12 h-12 bg-blue-600 rounded flex items-center justify-center text-white font-bold">
-          {flight.airlineCode}
-        </div>
-        <div>
-          <div className="font-medium">{flight.airlineName}</div>
-          <div className="text-sm text-gray-500">{flight.flightNumber}</div>
-        </div>
-      </div>
+const FlightCard = ({ flight, isSelected, onSelect, fareTypeInfo }) => {
+  const isSpecialFare = fareTypeInfo?.specialFaresAvailable && fareTypeInfo?.requested !== 'REGULAR';
+  const config = isSpecialFare ? FARE_TYPE_CONFIG[fareTypeInfo.requested] : null;
 
-      {/* Time & Route */}
-      <div className="flex items-center space-x-8">
-        <div className="text-center">
-          <div className="text-xl font-bold">{flight.departureTime}</div>
-          <div className="text-sm text-gray-500">{flight.origin}</div>
-        </div>
-
-        <div className="text-center">
-          <div className="text-sm text-gray-500">{flight.duration}</div>
-          <div className="w-24 h-0.5 bg-gray-300 relative my-1">
-            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-gray-400 rounded-full"></div>
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-gray-400 rounded-full"></div>
+  return (
+    <div
+      className={`bg-white rounded-lg shadow-md p-4 mb-4 cursor-pointer transition ${
+        isSelected ? 'ring-2 ring-blue-500' : 'hover:shadow-lg'
+      } ${isSpecialFare ? `border-l-4 ${config?.borderColor}` : ''}`}
+      onClick={onSelect}
+    >
+      <div className="flex items-center justify-between">
+        {/* Airline Info */}
+        <div className="flex items-center space-x-4">
+          <div className="w-12 h-12 bg-blue-600 rounded flex items-center justify-center text-white font-bold">
+            {flight.airlineCode}
           </div>
-          <div className="text-xs text-green-600">{flight.stops === 0 ? 'Non-stop' : `${flight.stops} Stop`}</div>
+          <div>
+            <div className="font-medium">{flight.airlineName}</div>
+            <div className="text-sm text-gray-500">{flight.flightNumber}</div>
+          </div>
         </div>
 
-        <div className="text-center">
-          <div className="text-xl font-bold">{flight.arrivalTime}</div>
-          <div className="text-sm text-gray-500">{flight.destination}</div>
+        {/* Time & Route */}
+        <div className="flex items-center space-x-8">
+          <div className="text-center">
+            <div className="text-xl font-bold">{flight.departureTime}</div>
+            <div className="text-sm text-gray-500">{flight.origin}</div>
+          </div>
+
+          <div className="text-center">
+            <div className="text-sm text-gray-500">{flight.duration}</div>
+            <div className="w-24 h-0.5 bg-gray-300 relative my-1">
+              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-gray-400 rounded-full"></div>
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-gray-400 rounded-full"></div>
+            </div>
+            <div className="text-xs text-green-600">{flight.stops === 0 ? 'Non-stop' : `${flight.stops} Stop`}</div>
+          </div>
+
+          <div className="text-center">
+            <div className="text-xl font-bold">{flight.arrivalTime}</div>
+            <div className="text-sm text-gray-500">{flight.destination}</div>
+          </div>
+        </div>
+
+        {/* Price */}
+        <div className="text-right">
+          {isSpecialFare && (
+            <div className="flex items-center justify-end mb-1">
+              <span className={`text-xs px-2 py-0.5 rounded-full ${config?.bgColor} ${config?.borderColor} border`}>
+                {config?.icon} {fareTypeInfo.fareTypeDetails?.name}
+              </span>
+            </div>
+          )}
+          <div className="text-2xl font-bold text-blue-600">₹{flight.price?.toLocaleString()}</div>
+          <div className="text-sm text-gray-500">per adult</div>
+          {isSpecialFare && fareTypeInfo.fareTypeDetails?.discount && (
+            <div className="text-xs text-green-600 font-medium">
+              {fareTypeInfo.fareTypeDetails.discount}
+            </div>
+          )}
+          <button className="mt-2 bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition">
+            Book Now
+          </button>
         </div>
       </div>
 
-      {/* Price */}
-      <div className="text-right">
-        <div className="text-2xl font-bold text-blue-600">₹{flight.price.toLocaleString()}</div>
-        <div className="text-sm text-gray-500">per adult</div>
-        <button className="mt-2 bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition">
-          Book Now
-        </button>
-      </div>
+      {/* Expandable Details */}
+      {isSelected && (
+        <div className="mt-4 pt-4 border-t">
+          <div className="grid grid-cols-4 gap-4 text-sm">
+            <div>
+              <span className="text-gray-500">Baggage:</span>
+              <span className="ml-2">{flight.baggage}</span>
+            </div>
+            <div>
+              <span className="text-gray-500">Refundable:</span>
+              <span className={`ml-2 ${flight.refundable ? 'text-green-600' : 'text-red-600'}`}>
+                {flight.refundable ? 'Yes' : 'No'}
+              </span>
+            </div>
+            <div>
+              <span className="text-gray-500">Seats Available:</span>
+              <span className="ml-2">{flight.seatsAvailable}</span>
+            </div>
+            {isSpecialFare && (
+              <div>
+                <span className="text-gray-500">Fare Type:</span>
+                <span className="ml-2 text-green-600 font-medium">
+                  {fareTypeInfo.fareTypeDetails?.name}
+                </span>
+              </div>
+            )}
+          </div>
+          {isSpecialFare && fareTypeInfo.fareTypeDetails?.documentsRequired?.length > 0 && (
+            <div className="mt-3 p-2 bg-yellow-50 rounded-md">
+              <p className="text-xs text-yellow-700">
+                <strong>Required Documents:</strong> {fareTypeInfo.fareTypeDetails.documentsRequired.join(', ')}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
+  );
+};
 
-    {/* Expandable Details */}
-    {isSelected && (
-      <div className="mt-4 pt-4 border-t">
-        <div className="grid grid-cols-3 gap-4 text-sm">
-          <div>
-            <span className="text-gray-500">Baggage:</span>
-            <span className="ml-2">{flight.baggage}</span>
-          </div>
-          <div>
-            <span className="text-gray-500">Refundable:</span>
-            <span className={`ml-2 ${flight.refundable ? 'text-green-600' : 'text-red-600'}`}>
-              {flight.refundable ? 'Yes' : 'No'}
-            </span>
-          </div>
-          <div>
-            <span className="text-gray-500">Seats Available:</span>
-            <span className="ml-2">{flight.seatsAvailable}</span>
-          </div>
-        </div>
-      </div>
-    )}
-  </div>
-);
-
-// Mock flight results
+// Mock flight results for demo
 const mockFlightResults = {
   flights: [
     {

@@ -86,6 +86,9 @@ export const flightApi = {
     getSectors: () =>
         api.get('/flights/sectors'),
 
+    getFareTypes: () =>
+        api.get('/flights/fare-types'),
+
     search: (searchParams) =>
         api.post('/flights/search', searchParams),
 
