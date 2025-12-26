@@ -1,6 +1,7 @@
 /**
  * Itinerary Builder Controller
  * AI-powered travel itinerary generation with usage limits
+ * Uses Claude API for intelligent itinerary generation
  */
 
 const {
@@ -10,6 +11,8 @@ const {
     checkQuota,
     getPlanDetails
 } = require('../config/aiFeatures');
+
+const claudeService = require('../services/claude.service');
 
 // In-memory storage (replace with database in production)
 const userUsage = new Map();
@@ -169,31 +172,82 @@ const generateItinerary = async (req, res) => {
         // Get template if specified
         const template = templateId ? ITINERARY_TEMPLATES.find(t => t.id === templateId) : null;
 
-        // Generate itinerary (simulated AI generation)
+        // Generate itinerary ID
         const itineraryId = `itin_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-        // Build day-by-day plan
-        const dayPlan = [];
-        for (let i = 0; i < days; i++) {
-            const currentDate = new Date(start);
-            currentDate.setDate(start.getDate() + i);
+        let generatedData;
+        let dayPlan;
+        let summary;
+        let flights = null;
+        let hotels = null;
 
-            const dayActivities = generateDayActivities(destination, i + 1, days, interests, template);
+        // Try to generate using Claude API
+        if (claudeService.isAvailable()) {
+            try {
+                console.log('Generating itinerary with Claude API...');
+                generatedData = await claudeService.generateItinerary({
+                    destination,
+                    startDate,
+                    endDate,
+                    travelers: travelers || { adults: 2, children: 0 },
+                    budget,
+                    interests,
+                    template: template?.name,
+                    includeFlights,
+                    includeHotels,
+                    notes
+                });
 
-            dayPlan.push({
-                day: i + 1,
-                date: currentDate.toISOString().split('T')[0],
-                title: dayActivities.title,
-                activities: dayActivities.activities,
-                meals: dayActivities.meals,
-                accommodation: i < days - 1 ? dayActivities.accommodation : null,
-                tips: dayActivities.tips,
-                estimatedCost: dayActivities.estimatedCost
-            });
+                dayPlan = generatedData.dayPlan || [];
+                summary = generatedData.summary || {
+                    totalDays: days,
+                    totalEstimatedCost: dayPlan.reduce((sum, day) => sum + (day.estimatedDailyCost || 5000), 0),
+                    currency: 'INR',
+                    highlights: generatedData.summary?.highlights || []
+                };
+                flights = includeFlights ? generatedData.flightSuggestions : null;
+                hotels = includeHotels ? generatedData.hotelSuggestions : null;
+
+                console.log('Claude API itinerary generated successfully');
+            } catch (claudeError) {
+                console.error('Claude API error, falling back to mock:', claudeError.message);
+                // Fall back to mock generation
+                generatedData = null;
+            }
         }
 
-        // Calculate total cost
-        const totalEstimatedCost = dayPlan.reduce((sum, day) => sum + day.estimatedCost, 0);
+        // Fallback to mock generation if Claude is not available or fails
+        if (!generatedData) {
+            console.log('Using fallback mock itinerary generation');
+            dayPlan = [];
+            for (let i = 0; i < days; i++) {
+                const currentDate = new Date(start);
+                currentDate.setDate(start.getDate() + i);
+
+                const dayActivities = generateDayActivities(destination, i + 1, days, interests, template);
+
+                dayPlan.push({
+                    day: i + 1,
+                    date: currentDate.toISOString().split('T')[0],
+                    title: dayActivities.title,
+                    activities: dayActivities.activities,
+                    meals: dayActivities.meals,
+                    accommodation: i < days - 1 ? dayActivities.accommodation : null,
+                    tips: dayActivities.tips,
+                    estimatedCost: dayActivities.estimatedCost
+                });
+            }
+
+            const totalEstimatedCost = dayPlan.reduce((sum, day) => sum + day.estimatedCost, 0);
+            summary = {
+                totalDays: days,
+                totalEstimatedCost,
+                currency: 'INR',
+                highlights: extractHighlights(dayPlan)
+            };
+            flights = includeFlights ? generateFlightSuggestions(destination, startDate, endDate) : null;
+            hotels = includeHotels ? generateHotelSuggestions(destination, days, budget) : null;
+        }
 
         const itinerary = {
             id: itineraryId,
@@ -211,14 +265,13 @@ const generateItinerary = async (req, res) => {
             includeActivities,
             notes,
             dayPlan,
-            summary: {
-                totalDays: days,
-                totalEstimatedCost,
-                currency: 'INR',
-                highlights: extractHighlights(dayPlan)
-            },
-            flights: includeFlights ? generateFlightSuggestions(destination, startDate, endDate) : null,
-            hotels: includeHotels ? generateHotelSuggestions(destination, days, budget) : null,
+            summary,
+            flights,
+            hotels,
+            packingList: generatedData?.packingList || [],
+            weatherInfo: generatedData?.weatherInfo || null,
+            importantContacts: generatedData?.importantContacts || null,
+            generatedBy: claudeService.isAvailable() && generatedData ? 'claude' : 'fallback',
             status: 'completed',
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()

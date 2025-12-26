@@ -10,6 +10,7 @@ const {
     checkQuota,
     getPlanDetails
 } = require('../config/aiFeatures');
+const claudeService = require('../services/claude.service');
 
 // In-memory storage (replace with database in production)
 const userUsage = new Map();
@@ -147,25 +148,48 @@ const generateImage = async (req, res) => {
             });
         }
 
-        // Build enhanced prompt
+        // Build enhanced prompt using Claude AI if available
         let enhancedPrompt = prompt || `Beautiful travel photograph of ${destination}`;
+        let promptEnhancedBy = 'basic';
 
-        if (category) {
-            const categoryConfig = IMAGE_CATEGORIES.find(c => c.id === category);
-            if (categoryConfig) {
-                const randomPromptPrefix = categoryConfig.prompts[Math.floor(Math.random() * categoryConfig.prompts.length)];
-                enhancedPrompt = `${randomPromptPrefix} ${destination || prompt}`;
+        // Try Claude API for prompt enhancement
+        if (claudeService.isAvailable()) {
+            try {
+                console.log('Enhancing prompt with Claude API...');
+                const styleConfig = style ? IMAGE_STYLES.find(s => s.id === style) : null;
+                enhancedPrompt = await claudeService.enhanceImagePrompt({
+                    destination,
+                    style: styleConfig?.description || style || 'photorealistic',
+                    category,
+                    originalPrompt: prompt || destination
+                });
+                promptEnhancedBy = 'claude';
+                console.log('Prompt enhanced by Claude');
+            } catch (claudeError) {
+                console.error('Claude API error for prompt enhancement:', claudeError.message);
+                // Fall back to basic enhancement
             }
         }
 
-        if (style) {
-            const styleConfig = IMAGE_STYLES.find(s => s.id === style);
-            if (styleConfig) {
-                enhancedPrompt += `, ${styleConfig.description} style`;
+        // Fallback to basic prompt enhancement if Claude is not available or failed
+        if (promptEnhancedBy === 'basic') {
+            if (category) {
+                const categoryConfig = IMAGE_CATEGORIES.find(c => c.id === category);
+                if (categoryConfig) {
+                    const randomPromptPrefix = categoryConfig.prompts[Math.floor(Math.random() * categoryConfig.prompts.length)];
+                    enhancedPrompt = `${randomPromptPrefix} ${destination || prompt}`;
+                }
             }
-        }
 
-        enhancedPrompt += ', high quality, professional travel photography, vibrant colors';
+            if (style) {
+                const styleConfig = IMAGE_STYLES.find(s => s.id === style);
+                if (styleConfig) {
+                    enhancedPrompt += `, ${styleConfig.description} style`;
+                }
+            }
+
+            enhancedPrompt += ', high quality, professional travel photography, vibrant colors';
+        }
 
         // Simulate image generation (in production, call actual AI API)
         const imageId = `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -185,6 +209,7 @@ const generateImage = async (req, res) => {
             userId,
             prompt: enhancedPrompt,
             originalPrompt: prompt || destination,
+            promptEnhancedBy,
             style,
             category,
             destination,
