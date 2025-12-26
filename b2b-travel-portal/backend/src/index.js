@@ -33,6 +33,9 @@ const imageGeneratorRoutes = require('./routes/imageGenerator.routes');
 const itineraryRoutes = require('./routes/itinerary.routes');
 const aiSubscriptionRoutes = require('./routes/aiSubscription.routes');
 
+// Multi-supplier API Aggregator
+const aggregatorRoutes = require('./routes/aggregator.routes');
+
 // Import middleware
 const { errorHandler } = require('./middleware/error.middleware');
 const { authMiddleware } = require('./middleware/auth.middleware');
@@ -120,6 +123,12 @@ app.use('/api/v1/itineraries', authMiddleware, itineraryRoutes);
 
 // AI Subscription Routes (Platform-Direct Billing - NOT shared with white-label partners)
 app.use('/api/v1/ai-subscription', authMiddleware, aiSubscriptionRoutes);
+
+// Multi-Supplier API Aggregator Routes (100+ suppliers support)
+app.use('/api/v1/aggregator', authMiddleware, aggregatorRoutes);
+
+// Public API for Aggregator (API-as-a-Service)
+app.use('/api/public/v1/aggregator', apiKeyAuth, apiRateLimit, aggregatorRoutes);
 
 // Error handling
 app.use(errorHandler);
