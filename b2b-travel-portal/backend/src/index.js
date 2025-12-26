@@ -33,8 +33,10 @@ const imageGeneratorRoutes = require('./routes/imageGenerator.routes');
 const itineraryRoutes = require('./routes/itinerary.routes');
 const aiSubscriptionRoutes = require('./routes/aiSubscription.routes');
 
-// Multi-supplier API Aggregator
+// Multi-supplier API Aggregators (Flights, Hotels, Buses)
 const aggregatorRoutes = require('./routes/aggregator.routes');
+const hotelAggregatorRoutes = require('./routes/hotelAggregator.routes');
+const busAggregatorRoutes = require('./routes/busAggregator.routes');
 
 // Import middleware
 const { errorHandler } = require('./middleware/error.middleware');
@@ -124,11 +126,15 @@ app.use('/api/v1/itineraries', authMiddleware, itineraryRoutes);
 // AI Subscription Routes (Platform-Direct Billing - NOT shared with white-label partners)
 app.use('/api/v1/ai-subscription', authMiddleware, aiSubscriptionRoutes);
 
-// Multi-Supplier API Aggregator Routes (100+ suppliers support)
-app.use('/api/v1/aggregator', authMiddleware, aggregatorRoutes);
+// Multi-Supplier API Aggregator Routes
+app.use('/api/v1/aggregator', authMiddleware, aggregatorRoutes);           // Flights (100+ suppliers)
+app.use('/api/v1/hotel-aggregator', authMiddleware, hotelAggregatorRoutes); // Hotels (50+ suppliers)
+app.use('/api/v1/bus-aggregator', authMiddleware, busAggregatorRoutes);     // Buses (40+ operators)
 
-// Public API for Aggregator (API-as-a-Service)
+// Public API for Aggregators (API-as-a-Service)
 app.use('/api/public/v1/aggregator', apiKeyAuth, apiRateLimit, aggregatorRoutes);
+app.use('/api/public/v1/hotel-aggregator', apiKeyAuth, apiRateLimit, hotelAggregatorRoutes);
+app.use('/api/public/v1/bus-aggregator', apiKeyAuth, apiRateLimit, busAggregatorRoutes);
 
 // Error handling
 app.use(errorHandler);
