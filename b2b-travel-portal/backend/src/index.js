@@ -22,11 +22,18 @@ const invoiceRoutes = require('./routes/invoice.routes');
 const groupBookingRoutes = require('./routes/groupBooking.routes');
 const fareCalendarRoutes = require('./routes/fareCalendar.routes');
 
+// SaaS/White-label routes
+const tenantRoutes = require('./routes/tenant.routes');
+const apiKeyRoutes = require('./routes/apiKey.routes');
+const subscriptionRoutes = require('./routes/subscription.routes');
+const partnerRoutes = require('./routes/partner.routes');
+
 // Import middleware
 const { errorHandler } = require('./middleware/error.middleware');
 const { authMiddleware } = require('./middleware/auth.middleware');
 const { auditMiddleware } = require('./middleware/audit.middleware');
 const { apiLimiter, authLimiter } = require('./middleware/rate-limit.middleware');
+const { apiKeyAuth, apiRateLimit } = require('./middleware/apiAuth.middleware');
 
 const app = express();
 
@@ -91,6 +98,16 @@ app.use('/api/v1/analytics', authMiddleware, analyticsRoutes);
 app.use('/api/v1/invoices', authMiddleware, invoiceRoutes);
 app.use('/api/v1/group-bookings', authMiddleware, groupBookingRoutes);
 app.use('/api/v1/fare-calendar', authMiddleware, fareCalendarRoutes);
+
+// SaaS/White-label Routes (Super Admin)
+app.use('/api/v1/tenants', tenantRoutes);
+app.use('/api/v1/api-keys', apiKeyRoutes);
+app.use('/api/v1/subscriptions', subscriptionRoutes);
+app.use('/api/v1/partners', partnerRoutes);
+
+// Public API (for API-as-a-Service customers)
+app.use('/api/public/v1/flights', apiKeyAuth, apiRateLimit, flightRoutes);
+app.use('/api/public/v1/bookings', apiKeyAuth, apiRateLimit, bookingRoutes);
 
 // Error handling
 app.use(errorHandler);

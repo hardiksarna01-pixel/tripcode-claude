@@ -29,6 +29,11 @@ import ApiProviderManagement from './components/admin/ApiProviderManagement';
 import AgentSignupApprovals from './components/admin/AgentSignupApprovals';
 import AgentDefaultSettings from './components/admin/AgentDefaultSettings';
 
+// Super Admin Components (SaaS/White-label)
+import SuperAdminDashboard from './components/superadmin/SuperAdminDashboard';
+import ApiDocumentation from './components/superadmin/ApiDocumentation';
+import WhiteLabelSettings from './components/superadmin/WhiteLabelSettings';
+
 /**
  * Protected Route Component with Layout
  */
@@ -232,6 +237,36 @@ const App = () => {
                             <AgentDefaultSettings />
                         </ProtectedRoute>
                     }
+                />
+
+                {/* Super Admin Routes (SaaS/White-label) */}
+                <Route
+                    path="/superadmin"
+                    element={
+                        <ProtectedRoute withLayout={false}>
+                            <SuperAdminDashboard />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/superadmin/dashboard"
+                    element={
+                        <ProtectedRoute withLayout={false}>
+                            <SuperAdminDashboard />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/superadmin/white-label"
+                    element={
+                        <ProtectedRoute>
+                            <WhiteLabelSettings />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/api-docs"
+                    element={<ApiDocumentation />}
                 />
 
                 {/* Default Route */}

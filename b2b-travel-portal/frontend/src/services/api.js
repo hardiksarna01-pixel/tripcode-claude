@@ -415,4 +415,142 @@ export const adminApi = {
         api.get('/admin/signup-requests', { params: filters })
 };
 
+/**
+ * Tenant API (SaaS/White-label)
+ */
+export const tenantApi = {
+    // Plans
+    getPlans: () =>
+        api.get('/tenants/plans'),
+
+    // Tenant CRUD
+    createTenant: (data) =>
+        api.post('/tenants', data),
+
+    getTenant: (tenantId) =>
+        api.get(`/tenants/${tenantId}`),
+
+    updateTenant: (tenantId, data) =>
+        api.put(`/tenants/${tenantId}`, data),
+
+    listTenants: (filters) =>
+        api.get('/tenants', { params: filters }),
+
+    // Branding
+    updateBranding: (tenantId, branding) =>
+        api.put(`/tenants/${tenantId}/branding`, branding),
+
+    // Custom Domain
+    setCustomDomain: (tenantId, domain) =>
+        api.post(`/tenants/${tenantId}/domain`, { domain }),
+
+    // Plan Management
+    changePlan: (tenantId, newPlan) =>
+        api.post(`/tenants/${tenantId}/change-plan`, { newPlan }),
+
+    // Usage
+    getUsage: (tenantId) =>
+        api.get(`/tenants/${tenantId}/usage`),
+
+    // Suspend/Reactivate
+    suspendTenant: (tenantId, reason) =>
+        api.post(`/tenants/${tenantId}/suspend`, { reason }),
+
+    reactivateTenant: (tenantId) =>
+        api.post(`/tenants/${tenantId}/reactivate`)
+};
+
+/**
+ * API Key Management
+ */
+export const apiKeyApi = {
+    getEndpoints: () =>
+        api.get('/api-keys/endpoints'),
+
+    generateKeys: (tenantId) =>
+        api.post('/api-keys/generate', { tenantId }),
+
+    getKeys: (tenantId) =>
+        api.get(`/api-keys/${tenantId}`),
+
+    getUsageStats: (tenantId) =>
+        api.get(`/api-keys/${tenantId}/usage`),
+
+    rotateKey: (tenantId, keyType) =>
+        api.post('/api-keys/rotate', { tenantId, keyType }),
+
+    revokeKey: (key) =>
+        api.post('/api-keys/revoke', { key })
+};
+
+/**
+ * Subscription API
+ */
+export const subscriptionApi = {
+    getSubscription: (tenantId) =>
+        api.get(`/subscriptions/${tenantId}`),
+
+    startSubscription: (tenantId, plan, paymentMethodId) =>
+        api.post(`/subscriptions/${tenantId}/start`, { plan, paymentMethodId }),
+
+    cancelSubscription: (tenantId, reason, cancelImmediately) =>
+        api.post(`/subscriptions/${tenantId}/cancel`, { reason, cancelImmediately }),
+
+    changePlan: (tenantId, newPlan, applyImmediately) =>
+        api.post(`/subscriptions/${tenantId}/change-plan`, { newPlan, applyImmediately }),
+
+    getBillingHistory: (tenantId, page, limit) =>
+        api.get(`/subscriptions/${tenantId}/billing-history`, { params: { page, limit } }),
+
+    getInvoice: (invoiceId) =>
+        api.get(`/subscriptions/invoices/${invoiceId}`),
+
+    processPayment: (tenantId, invoiceId, paymentMethodId, amount) =>
+        api.post(`/subscriptions/${tenantId}/pay`, { invoiceId, paymentMethodId, amount }),
+
+    addPaymentMethod: (tenantId, type, details) =>
+        api.post(`/subscriptions/${tenantId}/payment-methods`, { type, details }),
+
+    getRevenueSummary: (period) =>
+        api.get('/subscriptions/admin/revenue', { params: { period } })
+};
+
+/**
+ * Partner API
+ */
+export const partnerApi = {
+    getTiers: () =>
+        api.get('/partners/tiers'),
+
+    registerPartner: (data) =>
+        api.post('/partners/register', data),
+
+    getPartner: (partnerId) =>
+        api.get(`/partners/${partnerId}`),
+
+    updatePartner: (partnerId, data) =>
+        api.put(`/partners/${partnerId}`, data),
+
+    listPartners: (filters) =>
+        api.get('/partners', { params: filters }),
+
+    getReferrals: (partnerId, status) =>
+        api.get(`/partners/${partnerId}/referrals`, { params: { status } }),
+
+    trackReferral: (referralCode, tenantId, plan, subscriptionAmount) =>
+        api.post('/partners/track-referral', { referralCode, tenantId, plan, subscriptionAmount }),
+
+    getCommissions: (partnerId, period) =>
+        api.get(`/partners/${partnerId}/commissions`, { params: { period } }),
+
+    requestPayout: (partnerId) =>
+        api.post(`/partners/${partnerId}/request-payout`),
+
+    approvePartner: (partnerId) =>
+        api.post(`/partners/${partnerId}/approve`),
+
+    rejectPartner: (partnerId, reason) =>
+        api.post(`/partners/${partnerId}/reject`, { reason })
+};
+
 export default api;
