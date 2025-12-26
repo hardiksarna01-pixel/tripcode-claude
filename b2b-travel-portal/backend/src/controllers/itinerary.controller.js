@@ -7,17 +7,20 @@
 const {
     AI_FEATURE_PLANS,
     ITINERARY_TEMPLATES,
+    QUICK_START_ITINERARIES,
     POPULAR_DESTINATIONS,
     checkQuota,
     getPlanDetails
 } = require('../config/aiFeatures');
 
 const claudeService = require('../services/claude.service');
+const { getAgentPlan } = require('./aiSubscription.controller');
 
 // In-memory storage (replace with database in production)
 const userUsage = new Map();
 const itineraries = new Map();
-const userSubscriptions = new Map();
+// NOTE: Subscriptions are now managed by aiSubscription.controller.js
+// This ensures billing goes directly to platform, not white-label partners
 
 /**
  * Get daily usage reset time
@@ -54,9 +57,10 @@ const getUserUsage = (userId) => {
 
 /**
  * Get user's AI feature plan
+ * Uses centralized AI subscription service (platform-direct billing)
  */
 const getUserPlan = (userId) => {
-    return userSubscriptions.get(userId) || 'FREE';
+    return getAgentPlan(userId);
 };
 
 /**
@@ -70,6 +74,7 @@ const getConfig = async (req, res) => {
 
         res.json({
             templates: ITINERARY_TEMPLATES,
+            quickStartItineraries: QUICK_START_ITINERARIES,
             popularDestinations: POPULAR_DESTINATIONS,
             currentPlan: plan,
             planDetails,

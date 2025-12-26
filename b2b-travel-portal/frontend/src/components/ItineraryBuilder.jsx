@@ -21,6 +21,7 @@ const ItineraryBuilder = () => {
     const [selectedItinerary, setSelectedItinerary] = useState(null);
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
     const [activeDay, setActiveDay] = useState(1);
+    const [showQuickStart, setShowQuickStart] = useState(true);
 
     const interestOptions = [
         'Culture & Heritage', 'Adventure', 'Beach & Relaxation', 'Food & Cuisine',
@@ -36,12 +37,28 @@ const ItineraryBuilder = () => {
     const fetchConfig = async () => {
         setConfig({
             templates: [
-                { id: 'honeymoon', name: 'Honeymoon', description: 'Romantic getaway' },
-                { id: 'family', name: 'Family Vacation', description: 'Family-friendly' },
-                { id: 'adventure', name: 'Adventure Trip', description: 'Thrill-seeking' },
-                { id: 'cultural', name: 'Cultural Tour', description: 'Heritage focused' },
-                { id: 'weekend', name: 'Weekend Getaway', description: 'Quick trip' },
-                { id: 'luxury', name: 'Luxury Escape', description: 'Premium experiences' }
+                { id: 'honeymoon', name: 'Honeymoon', icon: '💑', description: 'Romantic getaway for newlyweds', days: 7, travelers: { adults: 2, children: 0 }, budget: 'luxury' },
+                { id: 'family', name: 'Family Vacation', icon: '👨‍👩‍👧‍👦', description: 'Fun-filled trip for the family', days: 5, travelers: { adults: 2, children: 2 }, budget: 'moderate' },
+                { id: 'adventure', name: 'Adventure Trip', icon: '🧗', description: 'Thrill-seeking outdoor experiences', days: 4, travelers: { adults: 2, children: 0 }, budget: 'moderate' },
+                { id: 'cultural', name: 'Cultural Tour', icon: '🏛️', description: 'Heritage and culture exploration', days: 6, travelers: { adults: 2, children: 0 }, budget: 'moderate' },
+                { id: 'business', name: 'Business + Leisure', icon: '💼', description: 'Work trip with leisure time', days: 3, travelers: { adults: 1, children: 0 }, budget: 'premium' },
+                { id: 'weekend', name: 'Weekend Getaway', icon: '🌴', description: 'Quick 2-day escape', days: 2, travelers: { adults: 2, children: 0 }, budget: 'moderate' },
+                { id: 'pilgrimage', name: 'Pilgrimage', icon: '🙏', description: 'Spiritual journey', days: 5, travelers: { adults: 2, children: 0 }, budget: 'budget' },
+                { id: 'luxury', name: 'Luxury Escape', icon: '👑', description: 'Premium all-inclusive experience', days: 7, travelers: { adults: 2, children: 0 }, budget: 'luxury' },
+                { id: 'backpacker', name: 'Backpacker Trip', icon: '🎒', description: 'Budget-friendly exploration', days: 10, travelers: { adults: 1, children: 0 }, budget: 'budget' },
+                { id: 'senior', name: 'Senior Citizen Tour', icon: '👴', description: 'Relaxed pace for seniors', days: 6, travelers: { adults: 2, children: 0 }, budget: 'moderate' }
+            ],
+            quickStartItineraries: [
+                { id: 'goa-beach-5d', name: 'Goa Beach Holiday', destination: 'Goa', days: 5, icon: '🏖️', description: 'Sun, sand, and seafood', template: 'family', highlights: ['Baga Beach', 'Old Goa Churches', 'Dudhsagar Falls'], bestSeason: 'Oct-Mar' },
+                { id: 'rajasthan-heritage-7d', name: 'Rajasthan Royal Heritage', destination: 'Jaipur, Udaipur, Jodhpur', days: 7, icon: '🏰', description: 'Explore the land of kings', template: 'cultural', highlights: ['Amber Fort', 'City Palace', 'Mehrangarh Fort'], bestSeason: 'Oct-Mar' },
+                { id: 'kerala-backwaters-6d', name: 'Kerala Backwaters & Hills', destination: 'Munnar, Alleppey, Kovalam', days: 6, icon: '🌿', description: "God's own country", template: 'honeymoon', highlights: ['Tea Gardens', 'Houseboat Stay', 'Ayurveda Spa'], bestSeason: 'Sep-Mar' },
+                { id: 'himachal-adventure-5d', name: 'Himachal Adventure', destination: 'Manali, Solang Valley', days: 5, icon: '🏔️', description: 'Mountains and adventure sports', template: 'adventure', highlights: ['Rohtang Pass', 'Paragliding', 'River Rafting'], bestSeason: 'Mar-Jun' },
+                { id: 'dubai-luxury-5d', name: 'Dubai Luxury Experience', destination: 'Dubai', days: 5, icon: '🌃', description: 'Glamour and entertainment', template: 'luxury', highlights: ['Burj Khalifa', 'Desert Safari', 'Dubai Mall'], bestSeason: 'Nov-Mar' },
+                { id: 'bali-romance-7d', name: 'Bali Romantic Escape', destination: 'Bali, Indonesia', days: 7, icon: '🌺', description: 'Island paradise for couples', template: 'honeymoon', highlights: ['Ubud Rice Terraces', 'Tanah Lot Temple', 'Seminyak Beach'], bestSeason: 'Apr-Oct' },
+                { id: 'varanasi-spiritual-4d', name: 'Varanasi Spiritual Journey', destination: 'Varanasi', days: 4, icon: '🕉️', description: 'Sacred city on the Ganges', template: 'pilgrimage', highlights: ['Ganga Aarti', 'Kashi Vishwanath', 'Sarnath'], bestSeason: 'Oct-Mar' },
+                { id: 'singapore-family-5d', name: 'Singapore Family Fun', destination: 'Singapore', days: 5, icon: '🎢', description: 'Theme parks and attractions', template: 'family', highlights: ['Universal Studios', 'Sentosa Island', 'Gardens by the Bay'], bestSeason: 'Year-round' },
+                { id: 'ladakh-road-10d', name: 'Ladakh Road Trip', destination: 'Leh, Nubra Valley, Pangong', days: 10, icon: '🏍️', description: 'Ultimate Himalayan adventure', template: 'adventure', highlights: ['Khardung La', 'Pangong Lake', 'Monasteries'], bestSeason: 'Jun-Sep' },
+                { id: 'thailand-mixed-6d', name: 'Thailand Complete', destination: 'Bangkok, Pattaya, Phuket', days: 6, icon: '🛕', description: 'Temples, beaches, and nightlife', template: 'family', highlights: ['Grand Palace', 'Phi Phi Islands', 'Thai Cuisine'], bestSeason: 'Nov-Feb' }
             ],
             popularDestinations: [
                 { city: 'Goa', type: 'Beach' },
@@ -95,6 +112,42 @@ const ItineraryBuilder = () => {
         const start = new Date(formData.startDate);
         const end = new Date(formData.endDate);
         return Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+    };
+
+    // Handle quick-start itinerary selection
+    const handleQuickStart = (quickStart) => {
+        const today = new Date();
+        const startDate = new Date(today);
+        startDate.setDate(startDate.getDate() + 7); // Start 1 week from now
+        const endDate = new Date(startDate);
+        endDate.setDate(endDate.getDate() + quickStart.days - 1);
+
+        // Find the template
+        const template = config?.templates?.find(t => t.id === quickStart.template);
+
+        setFormData({
+            destination: quickStart.destination,
+            startDate: startDate.toISOString().split('T')[0],
+            endDate: endDate.toISOString().split('T')[0],
+            travelers: template?.travelers || { adults: 2, children: 0 },
+            budget: template?.budget || 'moderate',
+            interests: [],
+            templateId: quickStart.template,
+            includeFlights: true,
+            includeHotels: true,
+            notes: `Quick start: ${quickStart.name}\nHighlights: ${quickStart.highlights?.join(', ')}\nBest Season: ${quickStart.bestSeason}`
+        });
+        setShowQuickStart(false);
+    };
+
+    // Handle template selection
+    const handleTemplateSelect = (template) => {
+        setFormData(prev => ({
+            ...prev,
+            templateId: template.id,
+            travelers: template.travelers || prev.travelers,
+            budget: template.budget || prev.budget
+        }));
     };
 
     const handleGenerate = async () => {
@@ -250,6 +303,60 @@ const ItineraryBuilder = () => {
                             </button>
                         )}
                     </div>
+                )}
+
+                {/* Quick Start Section */}
+                {showQuickStart && config?.quickStartItineraries && (
+                    <div className="mb-6 bg-white rounded-xl shadow-sm p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <div>
+                                <h2 className="font-semibold text-lg">Quick Start Itineraries</h2>
+                                <p className="text-sm text-gray-500">Popular pre-built trips - just click to get started</p>
+                            </div>
+                            <button
+                                onClick={() => setShowQuickStart(false)}
+                                className="text-sm text-gray-500 hover:text-gray-700"
+                            >
+                                Build from scratch
+                            </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                            {config.quickStartItineraries.map(qs => (
+                                <button
+                                    key={qs.id}
+                                    onClick={() => handleQuickStart(qs)}
+                                    className="p-4 border rounded-xl text-left hover:border-green-500 hover:bg-green-50 transition group"
+                                >
+                                    <span className="text-3xl mb-2 block">{qs.icon}</span>
+                                    <p className="font-semibold text-sm group-hover:text-green-700">{qs.name}</p>
+                                    <p className="text-xs text-gray-500 mt-1">{qs.destination}</p>
+                                    <div className="flex items-center gap-2 mt-2">
+                                        <span className="text-xs bg-gray-100 px-2 py-0.5 rounded">{qs.days} days</span>
+                                        <span className="text-xs text-gray-400">{qs.bestSeason}</span>
+                                    </div>
+                                    <div className="mt-2 flex flex-wrap gap-1">
+                                        {qs.highlights?.slice(0, 2).map((h, i) => (
+                                            <span key={i} className="text-xs text-gray-400">{h}</span>
+                                        ))}
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Show quick start button when hidden */}
+                {!showQuickStart && (
+                    <button
+                        onClick={() => setShowQuickStart(true)}
+                        className="mb-4 text-sm text-green-600 hover:text-green-800 flex items-center gap-1"
+                    >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        Show quick-start itineraries
+                    </button>
                 )}
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

@@ -12,6 +12,8 @@ const ImageGenerator = () => {
     const [history, setHistory] = useState([]);
     const [selectedImage, setSelectedImage] = useState(null);
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+    const [showTemplates, setShowTemplates] = useState(true);
+    const [selectedTemplateCategory, setSelectedTemplateCategory] = useState('all');
 
     useEffect(() => {
         fetchConfig();
@@ -20,7 +22,7 @@ const ImageGenerator = () => {
     }, []);
 
     const fetchConfig = async () => {
-        // Mock config data
+        // Mock config data with templates
         setConfig({
             styles: [
                 { id: 'photorealistic', name: 'Photorealistic', description: 'Realistic travel photography style' },
@@ -37,6 +39,37 @@ const ImageGenerator = () => {
                 { id: 'culture', name: 'Culture & Heritage' },
                 { id: 'food', name: 'Food & Cuisine' },
                 { id: 'beach', name: 'Beach & Islands' }
+            ],
+            templates: [
+                // Marketing
+                { id: 'hero-banner', name: 'Hero Banner', category: 'marketing', icon: '🖼️', description: 'Eye-catching banner for website', prompt: 'Stunning panoramic view of {destination} at golden hour, dramatic sky, professional travel photography', style: 'photorealistic' },
+                { id: 'instagram-post', name: 'Instagram Post', category: 'marketing', icon: '📱', description: 'Square format for social media', prompt: 'Beautiful travel moment in {destination}, vibrant colors, Instagram-worthy composition', style: 'photorealistic' },
+                { id: 'travel-poster', name: 'Vintage Poster', category: 'marketing', icon: '🎨', description: 'Retro-style promotional poster', prompt: 'Vintage travel poster of {destination}, art deco style, bold colors, iconic landmarks', style: 'vintage' },
+                // Accommodation
+                { id: 'luxury-hotel', name: 'Luxury Hotel', category: 'accommodation', icon: '🏨', description: 'Upscale hotel room with view', prompt: 'Luxury hotel room in {destination} with stunning view, elegant interiors, king bed', style: 'photorealistic' },
+                { id: 'resort-pool', name: 'Resort Pool', category: 'accommodation', icon: '🏊', description: 'Inviting pool area', prompt: 'Beautiful infinity pool at a luxury resort in {destination}, tropical setting, palm trees', style: 'photorealistic' },
+                { id: 'boutique-stay', name: 'Boutique Stay', category: 'accommodation', icon: '🏡', description: 'Cozy local accommodation', prompt: 'Charming boutique homestay in {destination}, traditional architecture, local decor', style: 'photorealistic' },
+                // Experiences
+                { id: 'adventure-activity', name: 'Adventure', category: 'experiences', icon: '🧗', description: 'Thrilling outdoor adventure', prompt: 'Exciting adventure activity in {destination}, action shot, dramatic landscape', style: 'photorealistic' },
+                { id: 'cultural-experience', name: 'Cultural', category: 'experiences', icon: '🎭', description: 'Local culture and traditions', prompt: 'Authentic cultural experience in {destination}, traditional performance, colorful costumes', style: 'photorealistic' },
+                { id: 'food-tour', name: 'Food & Dining', category: 'experiences', icon: '🍽️', description: 'Local food and dining', prompt: 'Delicious local cuisine of {destination}, beautifully plated dishes, food photography', style: 'photorealistic' },
+                { id: 'sunset-moment', name: 'Sunset', category: 'experiences', icon: '🌅', description: 'Magical sunset scene', prompt: 'Breathtaking sunset in {destination}, silhouette of landmarks, golden and pink sky', style: 'photorealistic' },
+                // Nature
+                { id: 'mountain-vista', name: 'Mountain Vista', category: 'nature', icon: '🏔️', description: 'Majestic mountain landscape', prompt: 'Majestic mountain landscape near {destination}, snow-capped peaks, dramatic clouds', style: 'photorealistic' },
+                { id: 'beach-paradise', name: 'Beach Paradise', category: 'nature', icon: '🏖️', description: 'Pristine beach scene', prompt: 'Pristine tropical beach in {destination}, turquoise water, white sand, palm trees', style: 'photorealistic' },
+                { id: 'wildlife-safari', name: 'Wildlife Safari', category: 'nature', icon: '🦁', description: 'Wildlife experience', prompt: 'Amazing wildlife safari near {destination}, exotic animals in natural habitat', style: 'photorealistic' },
+                // Occasions
+                { id: 'honeymoon-romance', name: 'Honeymoon', category: 'occasions', icon: '💑', description: 'Romantic couple moment', prompt: 'Romantic honeymoon scene in {destination}, couple enjoying private moment, candle-lit dinner', style: 'photorealistic' },
+                { id: 'family-vacation', name: 'Family Fun', category: 'occasions', icon: '👨‍👩‍👧‍👦', description: 'Family enjoying together', prompt: 'Happy family vacation in {destination}, parents with kids, fun activities, joyful moments', style: 'photorealistic' },
+                { id: 'group-celebration', name: 'Group Trip', category: 'occasions', icon: '🎉', description: 'Friends or group trip', prompt: 'Group of friends celebrating in {destination}, party atmosphere, travel buddies', style: 'photorealistic' }
+            ],
+            templateCategories: [
+                { id: 'all', name: 'All Templates' },
+                { id: 'marketing', name: 'Marketing' },
+                { id: 'accommodation', name: 'Accommodation' },
+                { id: 'experiences', name: 'Experiences' },
+                { id: 'nature', name: 'Nature' },
+                { id: 'occasions', name: 'Occasions' }
             ]
         });
     };
@@ -142,6 +175,18 @@ const ImageGenerator = () => {
         return `${hours}h ${minutes}m`;
     };
 
+    // Handle template selection
+    const handleTemplateSelect = (template) => {
+        setPrompt(template.prompt);
+        setStyle(template.style || 'photorealistic');
+        setShowTemplates(false);
+    };
+
+    // Filter templates by category
+    const filteredTemplates = config?.templates?.filter(t =>
+        selectedTemplateCategory === 'all' || t.category === selectedTemplateCategory
+    ) || [];
+
     return (
         <div className="min-h-screen bg-gray-50 p-6">
             <div className="max-w-6xl mx-auto">
@@ -182,6 +227,69 @@ const ImageGenerator = () => {
                             </button>
                         )}
                     </div>
+                )}
+
+                {/* Quick Templates Section */}
+                {showTemplates && config?.templates && (
+                    <div className="mb-6 bg-white rounded-xl shadow-sm p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <div>
+                                <h2 className="font-semibold">Quick Templates</h2>
+                                <p className="text-sm text-gray-500">Choose a template to get started quickly</p>
+                            </div>
+                            <button
+                                onClick={() => setShowTemplates(false)}
+                                className="text-sm text-gray-500 hover:text-gray-700"
+                            >
+                                Hide templates
+                            </button>
+                        </div>
+
+                        {/* Category Filter */}
+                        <div className="flex flex-wrap gap-2 mb-4">
+                            {config.templateCategories?.map(cat => (
+                                <button
+                                    key={cat.id}
+                                    onClick={() => setSelectedTemplateCategory(cat.id)}
+                                    className={`px-3 py-1.5 rounded-full text-sm ${
+                                        selectedTemplateCategory === cat.id
+                                            ? 'bg-blue-600 text-white'
+                                            : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                                    }`}
+                                >
+                                    {cat.name}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Templates Grid */}
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                            {filteredTemplates.map(template => (
+                                <button
+                                    key={template.id}
+                                    onClick={() => handleTemplateSelect(template)}
+                                    className="p-4 border rounded-lg text-left hover:border-blue-500 hover:bg-blue-50 transition group"
+                                >
+                                    <span className="text-2xl mb-2 block">{template.icon}</span>
+                                    <p className="font-medium text-sm group-hover:text-blue-700">{template.name}</p>
+                                    <p className="text-xs text-gray-500 mt-1">{template.description}</p>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Show templates button when hidden */}
+                {!showTemplates && (
+                    <button
+                        onClick={() => setShowTemplates(true)}
+                        className="mb-4 text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                    >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+                        </svg>
+                        Show quick templates
+                    </button>
                 )}
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

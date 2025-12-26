@@ -7,6 +7,7 @@ const {
     AI_FEATURE_PLANS,
     IMAGE_STYLES,
     IMAGE_CATEGORIES,
+    IMAGE_PROMPT_TEMPLATES,
     checkQuota,
     getPlanDetails
 } = require('../config/aiFeatures');
@@ -69,9 +70,20 @@ const getConfig = async (req, res) => {
         const plan = getUserPlan(userId);
         const planDetails = getPlanDetails(plan);
 
+        // Group templates by category for easier display
+        const templatesByCategory = IMAGE_PROMPT_TEMPLATES.reduce((acc, template) => {
+            if (!acc[template.category]) {
+                acc[template.category] = [];
+            }
+            acc[template.category].push(template);
+            return acc;
+        }, {});
+
         res.json({
             styles: IMAGE_STYLES,
             categories: IMAGE_CATEGORIES,
+            templates: IMAGE_PROMPT_TEMPLATES,
+            templatesByCategory,
             currentPlan: plan,
             planDetails,
             allPlans: Object.values(AI_FEATURE_PLANS)
