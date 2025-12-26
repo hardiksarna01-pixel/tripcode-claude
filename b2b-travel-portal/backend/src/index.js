@@ -31,6 +31,7 @@ const partnerRoutes = require('./routes/partner.routes');
 // AI Features routes
 const imageGeneratorRoutes = require('./routes/imageGenerator.routes');
 const itineraryRoutes = require('./routes/itinerary.routes');
+const aiSubscriptionRoutes = require('./routes/aiSubscription.routes');
 
 // Import middleware
 const { errorHandler } = require('./middleware/error.middleware');
@@ -116,6 +117,9 @@ app.use('/api/public/v1/bookings', apiKeyAuth, apiRateLimit, bookingRoutes);
 // AI Features Routes (Agent Portal)
 app.use('/api/v1/image-generator', authMiddleware, imageGeneratorRoutes);
 app.use('/api/v1/itineraries', authMiddleware, itineraryRoutes);
+
+// AI Subscription Routes (Platform-Direct Billing - NOT shared with white-label partners)
+app.use('/api/v1/ai-subscription', authMiddleware, aiSubscriptionRoutes);
 
 // Error handling
 app.use(errorHandler);

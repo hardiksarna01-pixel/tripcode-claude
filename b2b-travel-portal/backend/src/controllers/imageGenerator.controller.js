@@ -11,11 +11,13 @@ const {
     getPlanDetails
 } = require('../config/aiFeatures');
 const claudeService = require('../services/claude.service');
+const { getAgentPlan } = require('./aiSubscription.controller');
 
 // In-memory storage (replace with database in production)
 const userUsage = new Map();
 const generatedImages = new Map();
-const userSubscriptions = new Map();
+// NOTE: Subscriptions are now managed by aiSubscription.controller.js
+// This ensures billing goes directly to platform, not white-label partners
 
 /**
  * Get daily usage reset time
@@ -52,9 +54,10 @@ const getUserUsage = (userId) => {
 
 /**
  * Get user's AI feature plan
+ * Uses centralized AI subscription service (platform-direct billing)
  */
 const getUserPlan = (userId) => {
-    return userSubscriptions.get(userId) || 'FREE';
+    return getAgentPlan(userId);
 };
 
 /**
@@ -318,59 +321,30 @@ const deleteImage = async (req, res) => {
 
 /**
  * Subscribe to Pro plan
+ * DEPRECATED: Use /api/v1/ai-subscription/subscribe instead
+ * This endpoint redirects to the centralized AI subscription service
+ * which ensures billing goes directly to platform (not white-label partners)
  */
 const subscribePro = async (req, res) => {
-    try {
-        const userId = req.user?.id || 'demo';
-        const { paymentMethodId } = req.body;
-
-        // In production, process payment here
-        const subscription = {
-            userId,
-            plan: 'PRO',
-            startDate: new Date().toISOString(),
-            endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-            amount: AI_FEATURE_PLANS.PRO.price,
-            status: 'active',
-            paymentMethodId
-        };
-
-        userSubscriptions.set(userId, 'PRO');
-
-        // Reset usage for upgraded user
-        const usage = getUserUsage(userId);
-        usage.imagesUsedToday = 0;
-        usage.itinerariesUsedToday = 0;
-        userUsage.set(userId, usage);
-
-        res.status(201).json({
-            message: 'Successfully subscribed to Pro plan',
-            subscription,
-            newLimits: AI_FEATURE_PLANS.PRO.limits
-        });
-    } catch (error) {
-        console.error('Error subscribing:', error);
-        res.status(500).json({ error: 'Failed to process subscription' });
-    }
+    // Redirect to the proper AI subscription endpoint
+    res.status(308).json({
+        message: 'Please use the AI subscription endpoint for billing',
+        redirectTo: '/api/v1/ai-subscription/subscribe',
+        note: 'AI feature subscriptions are billed directly by the platform'
+    });
 };
 
 /**
  * Cancel Pro subscription
+ * DEPRECATED: Use /api/v1/ai-subscription/cancel instead
  */
 const cancelSubscription = async (req, res) => {
-    try {
-        const userId = req.user?.id || 'demo';
-
-        userSubscriptions.delete(userId);
-
-        res.json({
-            message: 'Subscription cancelled. You will be downgraded to Free plan.',
-            newLimits: AI_FEATURE_PLANS.FREE.limits
-        });
-    } catch (error) {
-        console.error('Error cancelling subscription:', error);
-        res.status(500).json({ error: 'Failed to cancel subscription' });
-    }
+    // Redirect to the proper AI subscription endpoint
+    res.status(308).json({
+        message: 'Please use the AI subscription endpoint',
+        redirectTo: '/api/v1/ai-subscription/cancel',
+        note: 'AI feature subscriptions are managed directly by the platform'
+    });
 };
 
 module.exports = {

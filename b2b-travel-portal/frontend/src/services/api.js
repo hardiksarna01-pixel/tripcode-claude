@@ -573,13 +573,34 @@ export const imageGeneratorApi = {
         api.get(`/image-generator/${imageId}`),
 
     deleteImage: (imageId) =>
-        api.delete(`/image-generator/${imageId}`),
+        api.delete(`/image-generator/${imageId}`)
+};
 
-    subscribePro: (paymentMethodId) =>
-        api.post('/image-generator/subscribe', { paymentMethodId }),
+/**
+ * AI Subscription API
+ * IMPORTANT: AI subscriptions are billed DIRECTLY to the platform
+ * White-label partners do NOT receive any revenue from AI subscriptions
+ */
+export const aiSubscriptionApi = {
+    // Get current AI subscription status
+    getSubscription: () =>
+        api.get('/ai-subscription'),
 
-    cancelSubscription: () =>
-        api.post('/image-generator/cancel-subscription')
+    // Subscribe to AI Pro plan (billed directly to platform)
+    subscribePro: (data) =>
+        api.post('/ai-subscription/subscribe', data),
+
+    // Cancel AI Pro subscription
+    cancel: (data) =>
+        api.post('/ai-subscription/cancel', data),
+
+    // Get AI billing history
+    getBillingHistory: (page, limit) =>
+        api.get('/ai-subscription/billing', { params: { page, limit } }),
+
+    // Get platform AI revenue (Super Admin only)
+    getPlatformRevenue: (period) =>
+        api.get('/ai-subscription/platform-revenue', { params: { period } })
 };
 
 /**

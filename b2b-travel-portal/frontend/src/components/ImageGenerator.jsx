@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { aiSubscriptionApi, imageGeneratorApi } from '../services/api';
 
 const ImageGenerator = () => {
     const [prompt, setPrompt] = useState('');
@@ -113,15 +114,25 @@ const ImageGenerator = () => {
         setDestination('');
     };
 
-    const handleUpgrade = () => {
-        // Simulate upgrade
-        setUsage({
-            plan: 'PRO',
-            images: { used: 0, limit: 10, remaining: 10 },
-            resetAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-        });
-        setShowUpgradeModal(false);
-        alert('Upgraded to Pro plan! You now have 10 images per day.');
+    const handleUpgrade = async () => {
+        try {
+            // Call the AI subscription API - billed directly to platform
+            const response = await aiSubscriptionApi.subscribePro({
+                paymentMethodId: 'demo_payment' // In production, integrate payment gateway
+            });
+
+            // Update usage with new plan limits
+            setUsage({
+                plan: 'PRO',
+                images: { used: 0, limit: 10, remaining: 10 },
+                resetAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+            });
+            setShowUpgradeModal(false);
+            alert('Upgraded to AI Pro plan! You now have 10 images per day.\n\nNote: This subscription is billed directly by the platform.');
+        } catch (error) {
+            console.error('Upgrade error:', error);
+            alert('Failed to upgrade. Please try again.');
+        }
     };
 
     const formatTimeRemaining = (resetAt) => {

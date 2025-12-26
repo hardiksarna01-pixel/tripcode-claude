@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { aiSubscriptionApi, itineraryApi } from '../services/api';
 
 const ItineraryBuilder = () => {
     const [formData, setFormData] = useState({
@@ -182,14 +183,25 @@ const ItineraryBuilder = () => {
         { name: 'Grand Hotel', rating: 4, pricePerNight: 4500, amenities: ['WiFi', 'Pool', 'Gym'] }
     ]);
 
-    const handleUpgrade = () => {
-        setUsage({
-            plan: 'PRO',
-            itineraries: { used: 0, limit: 10, remaining: 10 },
-            maxDays: 30,
-            resetAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-        });
-        setShowUpgradeModal(false);
+    const handleUpgrade = async () => {
+        try {
+            // Call the AI subscription API - billed directly to platform
+            await aiSubscriptionApi.subscribePro({
+                paymentMethodId: 'demo_payment' // In production, integrate payment gateway
+            });
+
+            setUsage({
+                plan: 'PRO',
+                itineraries: { used: 0, limit: 10, remaining: 10 },
+                maxDays: 30,
+                resetAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+            });
+            setShowUpgradeModal(false);
+            alert('Upgraded to AI Pro plan! You now have 10 itineraries per day.\n\nNote: This subscription is billed directly by the platform.');
+        } catch (error) {
+            console.error('Upgrade error:', error);
+            alert('Failed to upgrade. Please try again.');
+        }
     };
 
     const formatTimeRemaining = (resetAt) => {
