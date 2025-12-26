@@ -23,6 +23,10 @@ import GroupBooking from './components/GroupBooking';
 import ReportsPage from './components/ReportsPage';
 import InvoiceManagement from './components/InvoiceManagement';
 
+// AI Features Components
+import ImageGenerator from './components/ImageGenerator';
+import ItineraryBuilder from './components/ItineraryBuilder';
+
 // Admin Components
 import SchemeManagement from './components/admin/SchemeManagement';
 import ApiProviderManagement from './components/admin/ApiProviderManagement';
@@ -201,6 +205,24 @@ const App = () => {
                     element={
                         <ProtectedRoute>
                             <AgentSettings />
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* AI Features Routes */}
+                <Route
+                    path="/image-generator"
+                    element={
+                        <ProtectedRoute>
+                            <ImageGenerator />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/itinerary-builder"
+                    element={
+                        <ProtectedRoute>
+                            <ItineraryBuilder />
                         </ProtectedRoute>
                     }
                 />

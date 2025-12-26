@@ -28,6 +28,10 @@ const apiKeyRoutes = require('./routes/apiKey.routes');
 const subscriptionRoutes = require('./routes/subscription.routes');
 const partnerRoutes = require('./routes/partner.routes');
 
+// AI Features routes
+const imageGeneratorRoutes = require('./routes/imageGenerator.routes');
+const itineraryRoutes = require('./routes/itinerary.routes');
+
 // Import middleware
 const { errorHandler } = require('./middleware/error.middleware');
 const { authMiddleware } = require('./middleware/auth.middleware');
@@ -108,6 +112,10 @@ app.use('/api/v1/partners', partnerRoutes);
 // Public API (for API-as-a-Service customers)
 app.use('/api/public/v1/flights', apiKeyAuth, apiRateLimit, flightRoutes);
 app.use('/api/public/v1/bookings', apiKeyAuth, apiRateLimit, bookingRoutes);
+
+// AI Features Routes (Agent Portal)
+app.use('/api/v1/image-generator', authMiddleware, imageGeneratorRoutes);
+app.use('/api/v1/itineraries', authMiddleware, itineraryRoutes);
 
 // Error handling
 app.use(errorHandler);

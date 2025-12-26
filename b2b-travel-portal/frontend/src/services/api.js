@@ -553,4 +553,65 @@ export const partnerApi = {
         api.post(`/partners/${partnerId}/reject`, { reason })
 };
 
+/**
+ * Image Generator API
+ */
+export const imageGeneratorApi = {
+    getConfig: () =>
+        api.get('/image-generator/config'),
+
+    getUsage: () =>
+        api.get('/image-generator/usage'),
+
+    generate: (data) =>
+        api.post('/image-generator/generate', data),
+
+    getHistory: (page, limit) =>
+        api.get('/image-generator/history', { params: { page, limit } }),
+
+    getImage: (imageId) =>
+        api.get(`/image-generator/${imageId}`),
+
+    deleteImage: (imageId) =>
+        api.delete(`/image-generator/${imageId}`),
+
+    subscribePro: (paymentMethodId) =>
+        api.post('/image-generator/subscribe', { paymentMethodId }),
+
+    cancelSubscription: () =>
+        api.post('/image-generator/cancel-subscription')
+};
+
+/**
+ * Itinerary Builder API
+ */
+export const itineraryApi = {
+    getConfig: () =>
+        api.get('/itineraries/config'),
+
+    getUsage: () =>
+        api.get('/itineraries/usage'),
+
+    generate: (data) =>
+        api.post('/itineraries/generate', data),
+
+    getItineraries: (page, limit) =>
+        api.get('/itineraries', { params: { page, limit } }),
+
+    getItinerary: (itineraryId) =>
+        api.get(`/itineraries/${itineraryId}`),
+
+    updateItinerary: (itineraryId, data) =>
+        api.put(`/itineraries/${itineraryId}`, data),
+
+    deleteItinerary: (itineraryId) =>
+        api.delete(`/itineraries/${itineraryId}`),
+
+    exportItinerary: (itineraryId, format) =>
+        api.get(`/itineraries/${itineraryId}/export`, { params: { format } }),
+
+    duplicateItinerary: (itineraryId) =>
+        api.post(`/itineraries/${itineraryId}/duplicate`)
+};
+
 export default api;

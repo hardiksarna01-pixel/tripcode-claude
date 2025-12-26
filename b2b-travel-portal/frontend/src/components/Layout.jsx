@@ -26,6 +26,13 @@ const Layout = ({ children }) => {
             ]
         },
         {
+            category: 'AI Tools',
+            items: [
+                { path: '/image-generator', label: 'Image Generator', icon: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z', badge: 'AI' },
+                { path: '/itinerary-builder', label: 'Itinerary Builder', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01', badge: 'AI' },
+            ]
+        },
+        {
             category: 'Finance',
             items: [
                 { path: '/wallet', label: 'Wallet & Credit', icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z' },
@@ -88,7 +95,16 @@ const Layout = ({ children }) => {
                                     <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
                                     </svg>
-                                    {sidebarOpen && <span className="text-sm font-medium">{item.label}</span>}
+                                    {sidebarOpen && (
+                                        <span className="text-sm font-medium flex items-center gap-2">
+                                            {item.label}
+                                            {item.badge && (
+                                                <span className="px-1.5 py-0.5 text-xs bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-full">
+                                                    {item.badge}
+                                                </span>
+                                            )}
+                                        </span>
+                                    )}
                                 </Link>
                             ))}
                         </div>
