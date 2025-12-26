@@ -6,11 +6,22 @@ import useAuthStore from './store/authStore';
 import LoginPage from './components/auth/LoginPage';
 import RegisterPage from './components/auth/RegisterPage';
 
+// Layout
+import Layout from './components/Layout';
+
 // Main Components
 import Dashboard from './components/Dashboard';
 import FlightSearchPage from './components/FlightSearchPage';
 import FlightBookingPage from './components/FlightBookingPage';
 import AgentSettings from './components/AgentSettings';
+import BookingHistory from './components/BookingHistory';
+import WalletPage from './components/WalletPage';
+import MarkupManagement from './components/MarkupManagement';
+import CustomerManagement from './components/CustomerManagement';
+import FareCalendar from './components/FareCalendar';
+import GroupBooking from './components/GroupBooking';
+import ReportsPage from './components/ReportsPage';
+import InvoiceManagement from './components/InvoiceManagement';
 
 // Admin Components
 import SchemeManagement from './components/admin/SchemeManagement';
@@ -19,9 +30,9 @@ import AgentSignupApprovals from './components/admin/AgentSignupApprovals';
 import AgentDefaultSettings from './components/admin/AgentDefaultSettings';
 
 /**
- * Protected Route Component
+ * Protected Route Component with Layout
  */
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children, withLayout = true }) => {
     const { isAuthenticated, checkAuth } = useAuthStore();
 
     useEffect(() => {
@@ -30,6 +41,10 @@ const ProtectedRoute = ({ children }) => {
 
     if (!isAuthenticated) {
         return <Navigate to="/login" replace />;
+    }
+
+    if (withLayout) {
+        return <Layout>{children}</Layout>;
     }
 
     return children;
@@ -79,7 +94,7 @@ const App = () => {
                     }
                 />
 
-                {/* Protected Routes */}
+                {/* Protected Routes with Layout */}
                 <Route
                     path="/dashboard"
                     element={
@@ -101,6 +116,70 @@ const App = () => {
                     element={
                         <ProtectedRoute>
                             <FlightBookingPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/bookings"
+                    element={
+                        <ProtectedRoute>
+                            <BookingHistory />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/wallet"
+                    element={
+                        <ProtectedRoute>
+                            <WalletPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/markups"
+                    element={
+                        <ProtectedRoute>
+                            <MarkupManagement />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/customers"
+                    element={
+                        <ProtectedRoute>
+                            <CustomerManagement />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/fare-calendar"
+                    element={
+                        <ProtectedRoute>
+                            <FareCalendar />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/group-booking"
+                    element={
+                        <ProtectedRoute>
+                            <GroupBooking />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/reports"
+                    element={
+                        <ProtectedRoute>
+                            <ReportsPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/invoices"
+                    element={
+                        <ProtectedRoute>
+                            <InvoiceManagement />
                         </ProtectedRoute>
                     }
                 />

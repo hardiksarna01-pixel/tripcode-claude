@@ -35,10 +35,8 @@ api.interceptors.response.use(
     (response) => response.data,
     (error) => {
         if (error.response) {
-            // Handle specific error codes
             switch (error.response.status) {
                 case 401:
-                    // Clear auth and redirect to login
                     localStorage.removeItem('authToken');
                     localStorage.removeItem('agent');
                     if (window.location.pathname !== '/login') {
@@ -124,11 +122,14 @@ export const bookingApi = {
     getHistory: (filters) =>
         api.get('/bookings', { params: filters }),
 
-    cancel: (refNo, cancellationType) =>
-        api.post(`/bookings/${refNo}/cancel`, { cancellationType }),
+    cancel: (refNo, cancellationType, passengers) =>
+        api.post(`/bookings/${refNo}/cancel`, { cancellationType, passengers }),
 
     releasePnr: (refNo, airlinePnr) =>
-        api.post(`/bookings/${refNo}/release`, { airlinePnr })
+        api.post(`/bookings/${refNo}/release`, { airlinePnr }),
+
+    getCancellationCharges: (refNo) =>
+        api.get(`/bookings/${refNo}/cancellation-charges`)
 };
 
 /**
@@ -142,7 +143,203 @@ export const walletApi = {
         api.get('/wallet/transactions', { params: filters }),
 
     getSummary: (period) =>
-        api.get('/wallet/summary', { params: { period } })
+        api.get('/wallet/summary', { params: { period } }),
+
+    addFunds: (amount, paymentMethod, reference) =>
+        api.post('/wallet/add-funds', { amount, paymentMethod, reference }),
+
+    requestCreditIncrease: (requestedLimit, reason) =>
+        api.post('/wallet/request-credit', { requestedLimit, reason })
+};
+
+/**
+ * Markup API
+ */
+export const markupApi = {
+    getConfig: () =>
+        api.get('/markups/config'),
+
+    getMarkups: () =>
+        api.get('/markups'),
+
+    createMarkup: (data) =>
+        api.post('/markups', data),
+
+    updateMarkup: (id, data) =>
+        api.put(`/markups/${id}`, data),
+
+    deleteMarkup: (id) =>
+        api.delete(`/markups/${id}`),
+
+    toggleMarkup: (id) =>
+        api.post(`/markups/${id}/toggle`)
+};
+
+/**
+ * Customer API
+ */
+export const customerApi = {
+    getCustomers: (filters) =>
+        api.get('/customers', { params: filters }),
+
+    getCustomer: (id) =>
+        api.get(`/customers/${id}`),
+
+    createCustomer: (data) =>
+        api.post('/customers', data),
+
+    updateCustomer: (id, data) =>
+        api.put(`/customers/${id}`, data),
+
+    deleteCustomer: (id) =>
+        api.delete(`/customers/${id}`),
+
+    searchCustomers: (query) =>
+        api.get('/customers/search', { params: { q: query } }),
+
+    getFrequentTravelers: () =>
+        api.get('/customers/frequent'),
+
+    importCustomers: (customers) =>
+        api.post('/customers/import', { customers }),
+
+    getCustomerBookings: (id) =>
+        api.get(`/customers/${id}/bookings`)
+};
+
+/**
+ * Analytics API
+ */
+export const analyticsApi = {
+    getDashboardStats: (period) =>
+        api.get('/analytics/dashboard', { params: { period } }),
+
+    getBookingAnalytics: (period, groupBy) =>
+        api.get('/analytics/bookings', { params: { period, groupBy } }),
+
+    getRevenueAnalytics: (period) =>
+        api.get('/analytics/revenue', { params: { period } }),
+
+    getTopRoutes: (period, limit) =>
+        api.get('/analytics/top-routes', { params: { period, limit } }),
+
+    getTopAirlines: (period) =>
+        api.get('/analytics/top-airlines', { params: { period } }),
+
+    getPerformanceMetrics: (period) =>
+        api.get('/analytics/performance', { params: { period } }),
+
+    getMonthlySummary: (year) =>
+        api.get('/analytics/monthly', { params: { year } }),
+
+    getCommissionReport: (period) =>
+        api.get('/analytics/commission', { params: { period } }),
+
+    exportReport: (type, format, period) =>
+        api.get('/analytics/export', { params: { type, format, period } })
+};
+
+/**
+ * Invoice API
+ */
+export const invoiceApi = {
+    getInvoices: (filters) =>
+        api.get('/invoices', { params: filters }),
+
+    getInvoice: (id) =>
+        api.get(`/invoices/${id}`),
+
+    getInvoiceByBooking: (bookingRef) =>
+        api.get(`/invoices/booking/${bookingRef}`),
+
+    generateInvoice: (data) =>
+        api.post('/invoices/generate', data),
+
+    downloadInvoice: (id) =>
+        api.get(`/invoices/${id}/download`),
+
+    emailInvoice: (id, email) =>
+        api.post(`/invoices/${id}/email`, { email }),
+
+    addGstDetails: (id, gstDetails) =>
+        api.put(`/invoices/${id}/gst`, gstDetails),
+
+    getGstSummary: (params) =>
+        api.get('/invoices/gst-summary', { params }),
+
+    getGstProfiles: () =>
+        api.get('/invoices/gst-profiles')
+};
+
+/**
+ * Group Booking API
+ */
+export const groupBookingApi = {
+    getRequests: (filters) =>
+        api.get('/group-bookings', { params: filters }),
+
+    getRequest: (id) =>
+        api.get(`/group-bookings/${id}`),
+
+    createRequest: (data) =>
+        api.post('/group-bookings', data),
+
+    updateRequest: (id, data) =>
+        api.put(`/group-bookings/${id}`, data),
+
+    cancelRequest: (id, reason) =>
+        api.post(`/group-bookings/${id}/cancel`, { reason }),
+
+    acceptQuote: (id, quoteId) =>
+        api.post(`/group-bookings/${id}/accept-quote`, { quoteId }),
+
+    getPurposes: () =>
+        api.get('/group-bookings/purposes'),
+
+    getStats: () =>
+        api.get('/group-bookings/stats')
+};
+
+/**
+ * Fare Calendar API
+ */
+export const fareCalendarApi = {
+    getCalendar: (origin, destination, month, year, cabinClass) =>
+        api.get('/fare-calendar/calendar', {
+            params: { origin, destination, month, year, cabinClass }
+        }),
+
+    getTrend: (origin, destination, days) =>
+        api.get('/fare-calendar/trend', {
+            params: { origin, destination, days }
+        }),
+
+    getFlexibleFares: (origin, destination, departureDate, flexDays) =>
+        api.get('/fare-calendar/flexible', {
+            params: { origin, destination, departureDate, flexDays }
+        }),
+
+    comparePrices: (origin, destination, dates) =>
+        api.post('/fare-calendar/compare', { origin, destination, dates }),
+
+    // Price Alerts
+    getAlerts: (active) =>
+        api.get('/fare-calendar/alerts', { params: { active } }),
+
+    getAlert: (id) =>
+        api.get(`/fare-calendar/alerts/${id}`),
+
+    createAlert: (data) =>
+        api.post('/fare-calendar/alerts', data),
+
+    updateAlert: (id, data) =>
+        api.put(`/fare-calendar/alerts/${id}`, data),
+
+    deleteAlert: (id) =>
+        api.delete(`/fare-calendar/alerts/${id}`),
+
+    toggleAlert: (id) =>
+        api.post(`/fare-calendar/alerts/${id}/toggle`)
 };
 
 /**

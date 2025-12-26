@@ -15,6 +15,12 @@ const bookingRoutes = require('./routes/booking.routes');
 const walletRoutes = require('./routes/wallet.routes');
 const agentRoutes = require('./routes/agent.routes');
 const adminRoutes = require('./routes/admin.routes');
+const markupRoutes = require('./routes/markup.routes');
+const customerRoutes = require('./routes/customer.routes');
+const analyticsRoutes = require('./routes/analytics.routes');
+const invoiceRoutes = require('./routes/invoice.routes');
+const groupBookingRoutes = require('./routes/groupBooking.routes');
+const fareCalendarRoutes = require('./routes/fareCalendar.routes');
 
 // Import middleware
 const { errorHandler } = require('./middleware/error.middleware');
@@ -79,6 +85,12 @@ app.use('/api/v1/bookings', authMiddleware, bookingRoutes);
 app.use('/api/v1/wallet', authMiddleware, walletRoutes);
 app.use('/api/v1/agents', authMiddleware, agentRoutes);
 app.use('/api/v1/admin', adminRoutes); // Admin routes have their own auth
+app.use('/api/v1/markups', authMiddleware, markupRoutes);
+app.use('/api/v1/customers', authMiddleware, customerRoutes);
+app.use('/api/v1/analytics', authMiddleware, analyticsRoutes);
+app.use('/api/v1/invoices', authMiddleware, invoiceRoutes);
+app.use('/api/v1/group-bookings', authMiddleware, groupBookingRoutes);
+app.use('/api/v1/fare-calendar', authMiddleware, fareCalendarRoutes);
 
 // Error handling
 app.use(errorHandler);

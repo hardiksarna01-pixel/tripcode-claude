@@ -1,37 +1,29 @@
+/**
+ * Wallet Routes
+ */
+
 const express = require('express');
 const router = express.Router();
-const flightApiService = require('../services/flight-api.service');
-const { catchAsync } = require('../utils/catchAsync');
+const walletController = require('../controllers/wallet.controller');
 
-/**
- * @route   GET /api/v1/wallet/balance
- * @desc    Get agent wallet balance
- * @access  Private
- */
-router.get('/balance', catchAsync(async (req, res) => {
-    const result = await flightApiService.getWalletBalance(req.agentCredentials);
-    
-    res.json({
-        success: true,
-        data: result
-    });
-}));
+// Balance and summary
+router.get('/balance', walletController.getBalance);
+router.get('/summary', walletController.getSummary);
 
-/**
- * @route   GET /api/v1/wallet/transactions
- * @desc    Get wallet transaction history
- * @access  Private
- */
-router.get('/transactions', catchAsync(async (req, res) => {
-    // This would need a separate API endpoint or database query
-    // For now, return placeholder
-    res.json({
-        success: true,
-        data: {
-            transactions: [],
-            message: 'Transaction history - implement with database'
-        }
-    });
-}));
+// Transactions
+router.get('/transactions', walletController.getTransactions);
+
+// Fund operations
+router.post('/add-funds', walletController.addFunds);
+router.post('/deduct', walletController.deductFunds);
+router.post('/commission', walletController.addCommission);
+router.post('/refund', walletController.processRefund);
+
+// Hold operations
+router.post('/hold', walletController.holdFunds);
+router.post('/release-hold', walletController.releaseHold);
+
+// Credit management
+router.post('/request-credit', walletController.requestCreditIncrease);
 
 module.exports = router;
