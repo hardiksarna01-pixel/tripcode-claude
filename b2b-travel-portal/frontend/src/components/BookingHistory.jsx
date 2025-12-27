@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { bookingApi } from '../services/api';
 
 const BookingHistory = () => {
+    const navigate = useNavigate();
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState({
@@ -277,12 +279,18 @@ const BookingHistory = () => {
 
                                     {/* Actions */}
                                     <div className="flex gap-2 pt-4 border-t">
-                                        <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                                        <button
+                                            onClick={() => navigate(`/ticket/${booking.bookingRef}`)}
+                                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                                        >
                                             View Details
                                         </button>
-                                        {booking.status === 'confirmed' && (
+                                        {(booking.status === 'confirmed' || booking.status === 'ticketed') && (
                                             <>
-                                                <button className="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition">
+                                                <button
+                                                    onClick={() => navigate(`/ticket/${booking.bookingRef}`)}
+                                                    className="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition"
+                                                >
                                                     Download Ticket
                                                 </button>
                                                 <button

@@ -13,6 +13,7 @@ import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
 import FlightSearchPage from './components/FlightSearchPage';
 import FlightBookingPage from './components/FlightBookingPage';
+import TicketConfirmation from './components/TicketConfirmation';
 import AgentSettings from './components/AgentSettings';
 import BookingHistory from './components/BookingHistory';
 import WalletPage from './components/WalletPage';
@@ -125,6 +126,22 @@ const App = () => {
                     element={
                         <ProtectedRoute>
                             <FlightBookingPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/ticket/:bookingRef"
+                    element={
+                        <ProtectedRoute withLayout={false}>
+                            <TicketConfirmation />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/bookings/:bookingRef"
+                    element={
+                        <ProtectedRoute withLayout={false}>
+                            <TicketConfirmation />
                         </ProtectedRoute>
                     }
                 />

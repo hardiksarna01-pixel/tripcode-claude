@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 // Flight Booking Details Component - Matches Flyshop UI
 const FlightBookingPage = () => {
+  const navigate = useNavigate();
   const [promoCode, setPromoCode] = useState('');
+  const [isBooking, setIsBooking] = useState(false);
   
   // Sample data based on your screenshots
   const bookingData = {
@@ -54,6 +57,31 @@ const FlightBookingPage = () => {
       'You will be able check the status of your PNR on airline website or call center but names will be update 12 to 24 hrs prior to the flight departure.',
       'Web check-in is mandatory to board flights.'
     ]
+  };
+
+  // Handle booking completion and navigate to ticket confirmation
+  const handleBookingComplete = async () => {
+    setIsBooking(true);
+
+    try {
+      // Simulate API call for booking
+      // const response = await bookingApi.createBooking(bookingData);
+
+      // Simulate processing time
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Generate a booking reference
+      const bookingRef = `TC${Date.now().toString().slice(-10)}`;
+
+      // Navigate to ticket confirmation page
+      navigate(`/ticket/${bookingRef}`);
+
+    } catch (error) {
+      console.error('Booking failed:', error);
+      alert('Booking failed. Please try again.');
+    } finally {
+      setIsBooking(false);
+    }
   };
 
   return (
@@ -171,7 +199,10 @@ const FlightBookingPage = () => {
             <PassengerContactForm />
 
             {/* Traveller Details */}
-            <TravellerDetailsForm />
+            <TravellerDetailsForm
+              onBookingComplete={handleBookingComplete}
+              isBooking={isBooking}
+            />
 
             {/* Payment Mode */}
             <PaymentModeSection />
@@ -318,7 +349,7 @@ const PassengerContactForm = () => (
 );
 
 // Traveller Details Form
-const TravellerDetailsForm = () => (
+const TravellerDetailsForm = ({ onBookingComplete, isBooking }) => (
   <div className="bg-white rounded-lg shadow-md p-6 mt-6">
     <h3 className="text-lg font-semibold mb-4 flex items-center">
       <span className="mr-2">👥</span> TRAVELLER DETAILS
@@ -390,8 +421,20 @@ const TravellerDetailsForm = () => (
       </div>
     </div>
     
-    <button className="w-full bg-teal-500 text-white py-3 rounded-lg mt-6 font-semibold hover:bg-teal-600">
-      CONTINUE
+    <button
+      onClick={onBookingComplete}
+      disabled={isBooking}
+      className="w-full bg-teal-500 text-white py-3 rounded-lg mt-6 font-semibold hover:bg-teal-600 disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {isBooking ? (
+        <span className="flex items-center justify-center gap-2">
+          <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+          </svg>
+          Processing Booking...
+        </span>
+      ) : 'BOOK & PAY NOW'}
     </button>
   </div>
 );
