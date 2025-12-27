@@ -703,3 +703,335 @@ CREATE INDEX idx_bookings_date ON bookings(booking_date);
 CREATE INDEX idx_bookings_status ON bookings(status);
 CREATE INDEX idx_wallet_agent ON wallet_transactions(agent_id);
 CREATE INDEX idx_audit_entity ON audit_logs(entity_type, entity_id);
+
+-- =====================================================
+-- B2C WHITELABEL SITES
+-- =====================================================
+
+-- B2C Sites Configuration - Each agent can have a B2C website
+CREATE TABLE b2c_sites (
+    id SERIAL PRIMARY KEY,
+    site_code VARCHAR(50) UNIQUE NOT NULL, -- Used as subdomain or identifier
+    agent_id INTEGER NOT NULL REFERENCES agents(id),
+
+    -- Site Info
+    site_name VARCHAR(255) NOT NULL,
+    site_tagline VARCHAR(255),
+    site_description TEXT,
+
+    -- Domain Configuration
+    subdomain VARCHAR(100), -- e.g., "agentname" for agentname.tripcode.in
+    custom_domain VARCHAR(255), -- e.g., "www.agenttravels.com"
+    domain_verified BOOLEAN DEFAULT false,
+    ssl_enabled BOOLEAN DEFAULT false,
+
+    -- Branding
+    logo_url VARCHAR(500),
+    favicon_url VARCHAR(500),
+    primary_color VARCHAR(7) DEFAULT '#2563eb', -- Hex color
+    secondary_color VARCHAR(7) DEFAULT '#1e40af',
+    accent_color VARCHAR(7) DEFAULT '#f59e0b',
+    header_bg_color VARCHAR(7) DEFAULT '#ffffff',
+    footer_bg_color VARCHAR(7) DEFAULT '#1f2937',
+
+    -- Contact Info (displayed on B2C site)
+    display_email VARCHAR(255),
+    display_phone VARCHAR(20),
+    display_whatsapp VARCHAR(20),
+    display_address TEXT,
+
+    -- Social Links
+    facebook_url VARCHAR(500),
+    instagram_url VARCHAR(500),
+    twitter_url VARCHAR(500),
+    youtube_url VARCHAR(500),
+    linkedin_url VARCHAR(500),
+
+    -- SEO Settings
+    meta_title VARCHAR(255),
+    meta_description TEXT,
+    meta_keywords TEXT,
+    google_analytics_id VARCHAR(50),
+    facebook_pixel_id VARCHAR(50),
+
+    -- Features Enabled
+    enable_flights BOOLEAN DEFAULT true,
+    enable_hotels BOOLEAN DEFAULT false,
+    enable_holidays BOOLEAN DEFAULT false,
+    enable_visa BOOLEAN DEFAULT false,
+    enable_insurance BOOLEAN DEFAULT false,
+    enable_customer_login BOOLEAN DEFAULT true,
+    enable_customer_registration BOOLEAN DEFAULT true,
+    enable_price_alerts BOOLEAN DEFAULT false,
+    enable_wishlist BOOLEAN DEFAULT false,
+    enable_reviews BOOLEAN DEFAULT false,
+    enable_live_chat BOOLEAN DEFAULT false,
+    enable_blog BOOLEAN DEFAULT false,
+
+    -- Markup Settings for B2C
+    b2c_markup_type VARCHAR(20) DEFAULT 'PERCENTAGE', -- FLAT, PERCENTAGE
+    b2c_markup_value DECIMAL(10,2) DEFAULT 5.00, -- Default 5% or flat amount
+    b2c_convenience_fee DECIMAL(10,2) DEFAULT 0,
+
+    -- Payment Settings
+    payment_gateway VARCHAR(50), -- RAZORPAY, PAYU, CASHFREE
+    payment_gateway_key VARCHAR(255),
+    payment_gateway_secret VARCHAR(255),
+    payment_test_mode BOOLEAN DEFAULT true,
+    cod_enabled BOOLEAN DEFAULT false,
+
+    -- Legal Pages
+    terms_conditions TEXT,
+    privacy_policy TEXT,
+    refund_policy TEXT,
+    about_us TEXT,
+
+    -- Status
+    status VARCHAR(20) DEFAULT 'DRAFT', -- DRAFT, PENDING_REVIEW, ACTIVE, SUSPENDED
+    activated_at TIMESTAMP,
+    suspended_at TIMESTAMP,
+    suspension_reason TEXT,
+
+    -- Billing (if we charge for B2C sites)
+    plan_type VARCHAR(20) DEFAULT 'FREE', -- FREE, BASIC, PREMIUM, ENTERPRISE
+    plan_expires_at TIMESTAMP,
+
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- B2C Site Pages - Custom pages for each B2C site
+CREATE TABLE b2c_site_pages (
+    id SERIAL PRIMARY KEY,
+    site_id INTEGER NOT NULL REFERENCES b2c_sites(id) ON DELETE CASCADE,
+
+    page_slug VARCHAR(100) NOT NULL,
+    page_title VARCHAR(255) NOT NULL,
+    page_content TEXT,
+
+    meta_title VARCHAR(255),
+    meta_description TEXT,
+
+    is_published BOOLEAN DEFAULT true,
+    show_in_menu BOOLEAN DEFAULT false,
+    menu_order INTEGER DEFAULT 0,
+
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(site_id, page_slug)
+);
+
+-- B2C Site Banners/Sliders
+CREATE TABLE b2c_site_banners (
+    id SERIAL PRIMARY KEY,
+    site_id INTEGER NOT NULL REFERENCES b2c_sites(id) ON DELETE CASCADE,
+
+    banner_type VARCHAR(50) DEFAULT 'HERO', -- HERO, PROMO, POPUP
+    title VARCHAR(255),
+    subtitle VARCHAR(255),
+    image_url VARCHAR(500) NOT NULL,
+    image_mobile_url VARCHAR(500),
+    link_url VARCHAR(500),
+    cta_text VARCHAR(100),
+
+    position INTEGER DEFAULT 0,
+    is_active BOOLEAN DEFAULT true,
+
+    starts_at TIMESTAMP,
+    ends_at TIMESTAMP,
+
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- B2C Site Popular Routes/Destinations
+CREATE TABLE b2c_site_destinations (
+    id SERIAL PRIMARY KEY,
+    site_id INTEGER NOT NULL REFERENCES b2c_sites(id) ON DELETE CASCADE,
+
+    destination_type VARCHAR(20) DEFAULT 'ROUTE', -- ROUTE, CITY
+
+    -- For routes
+    origin_code VARCHAR(3),
+    origin_name VARCHAR(100),
+    destination_code VARCHAR(3),
+    destination_name VARCHAR(100),
+
+    -- For single destination
+    city_code VARCHAR(3),
+    city_name VARCHAR(100),
+    country VARCHAR(100),
+
+    image_url VARCHAR(500),
+    starting_price DECIMAL(10,2),
+
+    is_featured BOOLEAN DEFAULT false,
+    display_order INTEGER DEFAULT 0,
+
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- B2C Customers (separate from agents)
+CREATE TABLE b2c_customers (
+    id SERIAL PRIMARY KEY,
+    site_id INTEGER NOT NULL REFERENCES b2c_sites(id),
+
+    -- Login
+    email VARCHAR(255) NOT NULL,
+    password_hash VARCHAR(255),
+
+    -- Personal Info
+    first_name VARCHAR(100),
+    last_name VARCHAR(100),
+    mobile VARCHAR(20),
+    gender VARCHAR(10),
+    date_of_birth DATE,
+
+    -- Address
+    address_line1 VARCHAR(255),
+    address_line2 VARCHAR(255),
+    city VARCHAR(100),
+    state VARCHAR(100),
+    pincode VARCHAR(10),
+    country VARCHAR(50) DEFAULT 'India',
+
+    -- Preferences
+    preferred_language VARCHAR(10) DEFAULT 'en',
+    receive_newsletters BOOLEAN DEFAULT true,
+    receive_sms BOOLEAN DEFAULT true,
+    receive_whatsapp BOOLEAN DEFAULT true,
+
+    -- Travel Preferences
+    preferred_cabin_class VARCHAR(20),
+    preferred_airlines TEXT, -- JSON array
+
+    -- Verification
+    email_verified BOOLEAN DEFAULT false,
+    mobile_verified BOOLEAN DEFAULT false,
+
+    -- Social Login
+    google_id VARCHAR(100),
+    facebook_id VARCHAR(100),
+
+    -- Stats
+    total_bookings INTEGER DEFAULT 0,
+    total_spent DECIMAL(15,2) DEFAULT 0,
+    loyalty_points INTEGER DEFAULT 0,
+
+    last_login_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+
+    UNIQUE(site_id, email)
+);
+
+-- B2C Customer Saved Travelers
+CREATE TABLE b2c_saved_travelers (
+    id SERIAL PRIMARY KEY,
+    customer_id INTEGER NOT NULL REFERENCES b2c_customers(id) ON DELETE CASCADE,
+
+    traveler_type VARCHAR(20) DEFAULT 'ADULT', -- ADULT, CHILD, INFANT
+    title VARCHAR(10),
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    gender VARCHAR(10),
+    date_of_birth DATE,
+
+    -- ID Documents
+    passport_number VARCHAR(20),
+    passport_expiry DATE,
+    passport_country VARCHAR(50),
+
+    -- Frequent Flyer
+    frequent_flyer_airline VARCHAR(3),
+    frequent_flyer_number VARCHAR(20),
+
+    is_primary BOOLEAN DEFAULT false,
+
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- B2C Bookings (links customers to bookings)
+CREATE TABLE b2c_bookings (
+    id SERIAL PRIMARY KEY,
+    site_id INTEGER NOT NULL REFERENCES b2c_sites(id),
+    customer_id INTEGER REFERENCES b2c_customers(id),
+    booking_id INTEGER NOT NULL REFERENCES bookings(id),
+
+    -- Customer info at time of booking (in case customer not logged in)
+    customer_email VARCHAR(255),
+    customer_mobile VARCHAR(20),
+    customer_name VARCHAR(200),
+
+    -- B2C specific pricing
+    display_base_fare DECIMAL(15,2),
+    display_taxes DECIMAL(15,2),
+    display_convenience_fee DECIMAL(15,2),
+    display_total DECIMAL(15,2),
+
+    -- Payment
+    payment_method VARCHAR(50),
+    payment_gateway_ref VARCHAR(100),
+    payment_status VARCHAR(20) DEFAULT 'PENDING',
+    payment_completed_at TIMESTAMP,
+
+    -- Tracking
+    utm_source VARCHAR(100),
+    utm_medium VARCHAR(100),
+    utm_campaign VARCHAR(100),
+
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- B2C Price Alerts
+CREATE TABLE b2c_price_alerts (
+    id SERIAL PRIMARY KEY,
+    site_id INTEGER NOT NULL REFERENCES b2c_sites(id),
+    customer_id INTEGER REFERENCES b2c_customers(id),
+
+    email VARCHAR(255) NOT NULL,
+
+    origin VARCHAR(3) NOT NULL,
+    destination VARCHAR(3) NOT NULL,
+    travel_date DATE,
+    return_date DATE,
+
+    target_price DECIMAL(10,2),
+    current_lowest_price DECIMAL(10,2),
+
+    cabin_class VARCHAR(20) DEFAULT 'ECONOMY',
+    passengers INTEGER DEFAULT 1,
+
+    is_active BOOLEAN DEFAULT true,
+    last_notified_at TIMESTAMP,
+
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- B2C Wishlist
+CREATE TABLE b2c_wishlist (
+    id SERIAL PRIMARY KEY,
+    customer_id INTEGER NOT NULL REFERENCES b2c_customers(id) ON DELETE CASCADE,
+
+    item_type VARCHAR(20) DEFAULT 'FLIGHT', -- FLIGHT, HOTEL, PACKAGE
+
+    origin VARCHAR(3),
+    destination VARCHAR(3),
+    travel_date DATE,
+    return_date DATE,
+
+    search_params JSONB, -- Full search parameters
+
+    notes TEXT,
+
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Indexes for B2C tables
+CREATE INDEX idx_b2c_sites_agent ON b2c_sites(agent_id);
+CREATE INDEX idx_b2c_sites_status ON b2c_sites(status);
+CREATE INDEX idx_b2c_sites_subdomain ON b2c_sites(subdomain);
+CREATE INDEX idx_b2c_customers_site ON b2c_customers(site_id);
+CREATE INDEX idx_b2c_customers_email ON b2c_customers(site_id, email);
+CREATE INDEX idx_b2c_bookings_site ON b2c_bookings(site_id);
+CREATE INDEX idx_b2c_bookings_customer ON b2c_bookings(customer_id);

@@ -38,6 +38,11 @@ import AgentDefaultSettings from './components/admin/AgentDefaultSettings';
 import SuperAdminDashboard from './components/superadmin/SuperAdminDashboard';
 import ApiDocumentation from './components/superadmin/ApiDocumentation';
 import WhiteLabelSettings from './components/superadmin/WhiteLabelSettings';
+import B2CSiteManagement from './components/superadmin/B2CSiteManagement';
+
+// B2C Components (Whitelabel Customer-Facing)
+import B2CWebsite from './components/b2c/B2CWebsite';
+import B2CAdminPanel from './components/b2c/B2CAdminPanel';
 
 /**
  * Protected Route Component with Layout
@@ -306,6 +311,42 @@ const App = () => {
                 <Route
                     path="/api-docs"
                     element={<ApiDocumentation />}
+                />
+                <Route
+                    path="/superadmin/b2c-sites"
+                    element={
+                        <ProtectedRoute withLayout={false}>
+                            <B2CSiteManagement />
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* B2C Agent Admin Routes */}
+                <Route
+                    path="/b2c-admin"
+                    element={
+                        <ProtectedRoute withLayout={false}>
+                            <B2CAdminPanel />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/b2c-admin/*"
+                    element={
+                        <ProtectedRoute withLayout={false}>
+                            <B2CAdminPanel />
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* B2C Public Website (Customer Facing) */}
+                <Route
+                    path="/b2c/:siteCode"
+                    element={<B2CWebsite />}
+                />
+                <Route
+                    path="/b2c/:siteCode/*"
+                    element={<B2CWebsite />}
                 />
 
                 {/* Default Route */}
