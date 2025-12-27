@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 /**
  * B2C Site Management - Super Admin Interface
  * Allows super admin to create and manage B2C whitelabel sites for agents
+ * Sites are deployed on agent's own custom domain
  */
 const B2CSiteManagement = () => {
     const [activeTab, setActiveTab] = useState('sites');
@@ -19,16 +20,19 @@ const B2CSiteManagement = () => {
         agent_id: '',
         site_name: '',
         site_tagline: '',
-        subdomain: '',
+        custom_domain: '',
         primary_color: '#2563eb',
         secondary_color: '#1e40af',
-        plan_type: 'FREE',
+        plan_type: 'STARTER',
         enable_flights: true,
         enable_hotels: false,
         enable_customer_login: true,
         b2c_markup_type: 'PERCENTAGE',
         b2c_markup_value: 5,
     });
+
+    // CNAME target for DNS configuration
+    const CNAME_TARGET = 'b2c.tripcode.in';
 
     useEffect(() => {
         fetchData();
@@ -44,8 +48,10 @@ const B2CSiteManagement = () => {
                 site_name: 'TravelMax Flights',
                 agent_name: 'TravelMax India Pvt Ltd',
                 agent_id: 1,
-                subdomain: 'travelmax',
                 custom_domain: 'www.travelmaxflights.com',
+                domain_verified: true,
+                ssl_enabled: true,
+                dns_configured: true,
                 status: 'ACTIVE',
                 plan_type: 'PREMIUM',
                 total_customers: 1250,
@@ -60,10 +66,12 @@ const B2CSiteManagement = () => {
                 site_name: 'FlyEasy Bookings',
                 agent_name: 'FlyEasy Tours & Travels',
                 agent_id: 2,
-                subdomain: 'flyeasy',
-                custom_domain: null,
+                custom_domain: 'flights.flyeasytours.in',
+                domain_verified: true,
+                ssl_enabled: true,
+                dns_configured: true,
                 status: 'ACTIVE',
-                plan_type: 'BASIC',
+                plan_type: 'STARTER',
                 total_customers: 340,
                 total_bookings: 89,
                 monthly_revenue: 45000,
@@ -76,10 +84,12 @@ const B2CSiteManagement = () => {
                 site_name: 'QuickTrips Online',
                 agent_name: 'QuickTrips Agency',
                 agent_id: 3,
-                subdomain: 'quicktrips',
-                custom_domain: null,
-                status: 'DRAFT',
-                plan_type: 'FREE',
+                custom_domain: 'book.quicktrips.co.in',
+                domain_verified: false,
+                ssl_enabled: false,
+                dns_configured: false,
+                status: 'PENDING_DNS',
+                plan_type: 'STARTER',
                 total_customers: 0,
                 total_bookings: 0,
                 monthly_revenue: 0,
@@ -92,8 +102,10 @@ const B2CSiteManagement = () => {
                 site_name: 'Global Wings Travel',
                 agent_name: 'Global Wings Pvt Ltd',
                 agent_id: 4,
-                subdomain: 'globalwings',
                 custom_domain: 'fly.globalwings.in',
+                domain_verified: true,
+                ssl_enabled: true,
+                dns_configured: true,
                 status: 'SUSPENDED',
                 plan_type: 'PREMIUM',
                 total_customers: 890,
@@ -115,8 +127,15 @@ const B2CSiteManagement = () => {
 
     const handleCreateSite = async () => {
         // Validate
-        if (!newSite.agent_id || !newSite.site_name || !newSite.subdomain) {
+        if (!newSite.agent_id || !newSite.site_name || !newSite.custom_domain) {
             alert('Please fill all required fields');
+            return;
+        }
+
+        // Validate domain format
+        const domainRegex = /^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$/i;
+        if (!domainRegex.test(newSite.custom_domain)) {
+            alert('Please enter a valid domain (e.g., flights.yourdomain.com)');
             return;
         }
 
@@ -127,13 +146,15 @@ const B2CSiteManagement = () => {
         const agent = agents.find(a => a.id === parseInt(newSite.agent_id));
         setSites([...sites, {
             id: sites.length + 1,
-            site_code: newSite.subdomain,
+            site_code: newSite.custom_domain.split('.')[0],
             site_name: newSite.site_name,
             agent_name: agent?.company_name || 'Unknown',
             agent_id: newSite.agent_id,
-            subdomain: newSite.subdomain,
-            custom_domain: null,
-            status: 'DRAFT',
+            custom_domain: newSite.custom_domain,
+            domain_verified: false,
+            ssl_enabled: false,
+            dns_configured: false,
+            status: 'PENDING_DNS',
             plan_type: newSite.plan_type,
             total_customers: 0,
             total_bookings: 0,
@@ -147,16 +168,23 @@ const B2CSiteManagement = () => {
             agent_id: '',
             site_name: '',
             site_tagline: '',
-            subdomain: '',
+            custom_domain: '',
             primary_color: '#2563eb',
             secondary_color: '#1e40af',
-            plan_type: 'FREE',
+            plan_type: 'STARTER',
             enable_flights: true,
             enable_hotels: false,
             enable_customer_login: true,
             b2c_markup_type: 'PERCENTAGE',
             b2c_markup_value: 5,
         });
+    };
+
+    const handleVerifyDomain = async (siteId) => {
+        // Mock verification - in production, check DNS records
+        setSites(sites.map(site =>
+            site.id === siteId ? { ...site, dns_configured: true, domain_verified: true, ssl_enabled: true, status: 'ACTIVE' } : site
+        ));
     };
 
     const handleStatusChange = (siteId, newStatus) => {
@@ -168,7 +196,7 @@ const B2CSiteManagement = () => {
     const filteredSites = sites.filter(site => {
         const matchesSearch = site.site_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             site.agent_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            site.subdomain.toLowerCase().includes(searchTerm.toLowerCase());
+            site.custom_domain.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = !statusFilter || site.status === statusFilter;
         return matchesSearch && matchesStatus;
     });
@@ -176,7 +204,7 @@ const B2CSiteManagement = () => {
     const stats = {
         total: sites.length,
         active: sites.filter(s => s.status === 'ACTIVE').length,
-        draft: sites.filter(s => s.status === 'DRAFT').length,
+        pendingDns: sites.filter(s => s.status === 'PENDING_DNS').length,
         suspended: sites.filter(s => s.status === 'SUSPENDED').length,
         totalCustomers: sites.reduce((sum, s) => sum + s.total_customers, 0),
         totalBookings: sites.reduce((sum, s) => sum + s.total_bookings, 0),
@@ -199,7 +227,7 @@ const B2CSiteManagement = () => {
                     <div className="flex justify-between items-center">
                         <div>
                             <h1 className="text-3xl font-bold">B2C Whitelabel Sites</h1>
-                            <p className="text-purple-100 mt-1">Create and manage B2C websites for agents</p>
+                            <p className="text-purple-100 mt-1">Deploy B2C websites on agent's own domain</p>
                         </div>
                         <button
                             onClick={() => setShowCreateModal(true)}
@@ -231,7 +259,7 @@ const B2CSiteManagement = () => {
                         </div>
                         <div className="mt-4 flex gap-4 text-sm">
                             <span className="text-green-600">{stats.active} Active</span>
-                            <span className="text-gray-500">{stats.draft} Draft</span>
+                            <span className="text-yellow-600">{stats.pendingDns} Pending DNS</span>
                             <span className="text-red-600">{stats.suspended} Suspended</span>
                         </div>
                     </div>
@@ -290,7 +318,7 @@ const B2CSiteManagement = () => {
                         <nav className="flex gap-8">
                             {[
                                 { id: 'sites', label: 'All Sites', count: sites.length },
-                                { id: 'pending', label: 'Pending Setup', count: sites.filter(s => s.status === 'DRAFT').length },
+                                { id: 'pending', label: 'Pending DNS Setup', count: sites.filter(s => s.status === 'PENDING_DNS').length },
                                 { id: 'analytics', label: 'Analytics' },
                             ].map(tab => (
                                 <button
@@ -303,7 +331,7 @@ const B2CSiteManagement = () => {
                                     }`}
                                 >
                                     {tab.label}
-                                    {tab.count !== undefined && (
+                                    {tab.count !== undefined && tab.count > 0 && (
                                         <span className={`px-2 py-0.5 text-xs rounded-full ${
                                             activeTab === tab.id ? 'bg-purple-100 text-purple-600' : 'bg-gray-100'
                                         }`}>
@@ -322,7 +350,7 @@ const B2CSiteManagement = () => {
                                 <div className="flex-1">
                                     <input
                                         type="text"
-                                        placeholder="Search by site name, agent, or subdomain..."
+                                        placeholder="Search by site name, agent, or domain..."
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                         className="w-full px-4 py-2 border rounded-lg"
@@ -335,8 +363,7 @@ const B2CSiteManagement = () => {
                                 >
                                     <option value="">All Status</option>
                                     <option value="ACTIVE">Active</option>
-                                    <option value="DRAFT">Draft</option>
-                                    <option value="PENDING_REVIEW">Pending Review</option>
+                                    <option value="PENDING_DNS">Pending DNS</option>
                                     <option value="SUSPENDED">Suspended</option>
                                 </select>
                             </div>
@@ -368,7 +395,6 @@ const B2CSiteManagement = () => {
                                                         </div>
                                                         <div>
                                                             <p className="font-medium">{site.site_name}</p>
-                                                            <p className="text-sm text-gray-500">{site.site_code}</p>
                                                         </div>
                                                     </div>
                                                 </td>
@@ -377,16 +403,23 @@ const B2CSiteManagement = () => {
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <div className="text-sm">
-                                                        <p className="text-blue-600">{site.subdomain}.tripcode.in</p>
-                                                        {site.custom_domain && (
-                                                            <p className="text-gray-500">{site.custom_domain}</p>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-blue-600 font-medium">{site.custom_domain}</span>
+                                                            {site.ssl_enabled && (
+                                                                <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                                                </svg>
+                                                            )}
+                                                        </div>
+                                                        {!site.dns_configured && (
+                                                            <span className="text-xs text-yellow-600">DNS not configured</span>
                                                         )}
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <span className={`px-2 py-1 text-xs rounded-full ${
                                                         site.plan_type === 'PREMIUM' ? 'bg-purple-100 text-purple-800' :
-                                                        site.plan_type === 'BASIC' ? 'bg-blue-100 text-blue-800' :
+                                                        site.plan_type === 'STARTER' ? 'bg-blue-100 text-blue-800' :
                                                         'bg-gray-100 text-gray-800'
                                                     }`}>
                                                         {site.plan_type}
@@ -401,44 +434,48 @@ const B2CSiteManagement = () => {
                                                 <td className="px-6 py-4">
                                                     <span className={`px-2 py-1 text-xs rounded-full ${
                                                         site.status === 'ACTIVE' ? 'bg-green-100 text-green-800' :
-                                                        site.status === 'DRAFT' ? 'bg-yellow-100 text-yellow-800' :
+                                                        site.status === 'PENDING_DNS' ? 'bg-yellow-100 text-yellow-800' :
                                                         site.status === 'SUSPENDED' ? 'bg-red-100 text-red-800' :
                                                         'bg-gray-100 text-gray-800'
                                                     }`}>
-                                                        {site.status}
+                                                        {site.status.replace('_', ' ')}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <div className="flex gap-2">
-                                                        <a
-                                                            href={`https://${site.subdomain}.tripcode.in`}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="text-blue-600 hover:text-blue-800 text-sm"
-                                                        >
-                                                            Visit
-                                                        </a>
+                                                        {site.status === 'ACTIVE' && (
+                                                            <a
+                                                                href={`https://${site.custom_domain}`}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="text-blue-600 hover:text-blue-800 text-sm"
+                                                            >
+                                                                Visit
+                                                            </a>
+                                                        )}
+                                                        {site.status === 'PENDING_DNS' && (
+                                                            <button
+                                                                onClick={() => handleVerifyDomain(site.id)}
+                                                                className="text-green-600 hover:text-green-800 text-sm"
+                                                            >
+                                                                Verify DNS
+                                                            </button>
+                                                        )}
                                                         <button
                                                             onClick={() => setSelectedSite(site)}
                                                             className="text-purple-600 hover:text-purple-800 text-sm"
                                                         >
                                                             Edit
                                                         </button>
-                                                        {site.status === 'ACTIVE' ? (
+                                                        {site.status === 'ACTIVE' && (
                                                             <button
                                                                 onClick={() => handleStatusChange(site.id, 'SUSPENDED')}
                                                                 className="text-red-600 hover:text-red-800 text-sm"
                                                             >
                                                                 Suspend
                                                             </button>
-                                                        ) : site.status === 'DRAFT' ? (
-                                                            <button
-                                                                onClick={() => handleStatusChange(site.id, 'ACTIVE')}
-                                                                className="text-green-600 hover:text-green-800 text-sm"
-                                                            >
-                                                                Activate
-                                                            </button>
-                                                        ) : (
+                                                        )}
+                                                        {site.status === 'SUSPENDED' && (
                                                             <button
                                                                 onClick={() => handleStatusChange(site.id, 'ACTIVE')}
                                                                 className="text-green-600 hover:text-green-800 text-sm"
@@ -458,9 +495,54 @@ const B2CSiteManagement = () => {
 
                     {activeTab === 'pending' && (
                         <div className="p-6">
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                                <h3 className="font-semibold text-blue-800 mb-2">DNS Configuration Instructions</h3>
+                                <p className="text-sm text-blue-700 mb-3">
+                                    Agents need to add a CNAME record pointing their domain to our servers:
+                                </p>
+                                <div className="bg-white rounded p-3 font-mono text-sm">
+                                    <p><span className="text-gray-500">Type:</span> CNAME</p>
+                                    <p><span className="text-gray-500">Host:</span> @ or subdomain (e.g., flights)</p>
+                                    <p><span className="text-gray-500">Points to:</span> <span className="text-blue-600">{CNAME_TARGET}</span></p>
+                                </div>
+                            </div>
+
+                            <h3 className="font-semibold mb-4">Sites Pending DNS Verification</h3>
+                            {sites.filter(s => s.status === 'PENDING_DNS').length === 0 ? (
+                                <p className="text-gray-500">No sites pending DNS setup</p>
+                            ) : (
+                                <div className="space-y-4">
+                                    {sites.filter(s => s.status === 'PENDING_DNS').map(site => (
+                                        <div key={site.id} className="border rounded-lg p-4">
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <p className="font-medium">{site.site_name}</p>
+                                                    <p className="text-sm text-gray-500">{site.agent_name}</p>
+                                                    <p className="text-sm text-blue-600 mt-1">{site.custom_domain}</p>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={() => handleVerifyDomain(site.id)}
+                                                        className="px-4 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700"
+                                                    >
+                                                        Verify DNS
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div className="mt-3 p-3 bg-gray-50 rounded text-sm">
+                                                <p className="text-gray-600">Required DNS Record:</p>
+                                                <code className="text-xs">CNAME {site.custom_domain} → {CNAME_TARGET}</code>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            <hr className="my-8" />
+
                             <h3 className="font-semibold mb-4">Agents Without B2C Sites</h3>
                             <p className="text-sm text-gray-500 mb-6">
-                                These agents don't have a B2C website yet. You can create one for them with a few clicks.
+                                These agents don't have a B2C website yet. Create one on their own domain.
                             </p>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {agents.filter(a => !a.has_b2c).map(agent => (
@@ -476,7 +558,7 @@ const B2CSiteManagement = () => {
                                                         ...newSite,
                                                         agent_id: agent.id,
                                                         site_name: agent.company_name,
-                                                        subdomain: agent.company_name.toLowerCase().replace(/[^a-z0-9]/g, ''),
+                                                        custom_domain: '',
                                                     });
                                                     setShowCreateModal(true);
                                                 }}
@@ -510,7 +592,7 @@ const B2CSiteManagement = () => {
                                                         </span>
                                                         <div>
                                                             <p className="font-medium">{site.site_name}</p>
-                                                            <p className="text-xs text-gray-500">{site.total_bookings} bookings</p>
+                                                            <p className="text-xs text-gray-500">{site.custom_domain}</p>
                                                         </div>
                                                     </div>
                                                     <span className="font-semibold text-green-600">
@@ -525,7 +607,7 @@ const B2CSiteManagement = () => {
                                 <div className="bg-gray-50 rounded-lg p-6">
                                     <h3 className="font-semibold mb-4">Plan Distribution</h3>
                                     <div className="space-y-4">
-                                        {['PREMIUM', 'BASIC', 'FREE'].map(plan => {
+                                        {['PREMIUM', 'STARTER'].map(plan => {
                                             const count = sites.filter(s => s.plan_type === plan).length;
                                             const percent = sites.length > 0 ? (count / sites.length) * 100 : 0;
                                             return (
@@ -537,8 +619,7 @@ const B2CSiteManagement = () => {
                                                     <div className="w-full bg-gray-200 rounded-full h-2">
                                                         <div
                                                             className={`h-2 rounded-full ${
-                                                                plan === 'PREMIUM' ? 'bg-purple-600' :
-                                                                plan === 'BASIC' ? 'bg-blue-600' : 'bg-gray-400'
+                                                                plan === 'PREMIUM' ? 'bg-purple-600' : 'bg-blue-600'
                                                             }`}
                                                             style={{ width: `${percent}%` }}
                                                         ></div>
@@ -560,7 +641,7 @@ const B2CSiteManagement = () => {
                     <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
                         <div className="p-6 border-b sticky top-0 bg-white">
                             <div className="flex justify-between items-center">
-                                <h2 className="text-xl font-bold">Create New B2C Site</h2>
+                                <h2 className="text-xl font-bold">Create B2C Site on Custom Domain</h2>
                                 <button
                                     onClick={() => setShowCreateModal(false)}
                                     className="text-gray-400 hover:text-gray-600"
@@ -593,38 +674,47 @@ const B2CSiteManagement = () => {
                             </div>
 
                             {/* Site Details */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Site Name <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={newSite.site_name}
-                                        onChange={(e) => setNewSite({ ...newSite, site_name: e.target.value })}
-                                        placeholder="e.g., TravelMax Flights"
-                                        className="w-full px-4 py-2 border rounded-lg"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Subdomain <span className="text-red-500">*</span>
-                                    </label>
-                                    <div className="flex">
-                                        <input
-                                            type="text"
-                                            value={newSite.subdomain}
-                                            onChange={(e) => setNewSite({
-                                                ...newSite,
-                                                subdomain: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '')
-                                            })}
-                                            placeholder="myagency"
-                                            className="flex-1 px-4 py-2 border rounded-l-lg"
-                                        />
-                                        <span className="px-4 py-2 bg-gray-100 border border-l-0 rounded-r-lg text-gray-500 text-sm">
-                                            .tripcode.in
-                                        </span>
-                                    </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Site Name <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    value={newSite.site_name}
+                                    onChange={(e) => setNewSite({ ...newSite, site_name: e.target.value })}
+                                    placeholder="e.g., TravelMax Flights"
+                                    className="w-full px-4 py-2 border rounded-lg"
+                                />
+                            </div>
+
+                            {/* Custom Domain */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Agent's Domain <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    value={newSite.custom_domain}
+                                    onChange={(e) => setNewSite({
+                                        ...newSite,
+                                        custom_domain: e.target.value.toLowerCase().replace(/\s/g, '')
+                                    })}
+                                    placeholder="e.g., flights.agentsite.com or www.agentflights.com"
+                                    className="w-full px-4 py-2 border rounded-lg"
+                                />
+                                <p className="text-xs text-gray-500 mt-2">
+                                    The agent's own domain where the B2C site will be accessible
+                                </p>
+                            </div>
+
+                            {/* DNS Instructions */}
+                            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                <h4 className="font-medium text-yellow-800 mb-2">DNS Setup Required</h4>
+                                <p className="text-sm text-yellow-700 mb-2">
+                                    After creating the site, the agent must add this CNAME record:
+                                </p>
+                                <div className="bg-white rounded p-2 font-mono text-sm">
+                                    <p>CNAME → <span className="text-blue-600">{CNAME_TARGET}</span></p>
                                 </div>
                             </div>
 
@@ -685,11 +775,10 @@ const B2CSiteManagement = () => {
                             {/* Plan Selection */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-3">Plan Type</label>
-                                <div className="grid grid-cols-3 gap-4">
+                                <div className="grid grid-cols-2 gap-4">
                                     {[
-                                        { id: 'FREE', name: 'Free', desc: 'Basic features, TripCode branding' },
-                                        { id: 'BASIC', name: 'Basic', desc: 'Custom branding, email support' },
-                                        { id: 'PREMIUM', name: 'Premium', desc: 'All features, custom domain' },
+                                        { id: 'STARTER', name: 'Starter', desc: 'Core features, custom domain, SSL included' },
+                                        { id: 'PREMIUM', name: 'Premium', desc: 'All features, priority support, advanced analytics' },
                                     ].map(plan => (
                                         <button
                                             key={plan.id}
@@ -715,7 +804,6 @@ const B2CSiteManagement = () => {
                                         { key: 'enable_flights', label: 'Flights' },
                                         { key: 'enable_hotels', label: 'Hotels' },
                                         { key: 'enable_customer_login', label: 'Customer Login' },
-                                        { key: 'enable_customer_registration', label: 'Customer Registration' },
                                     ].map(feature => (
                                         <label key={feature.key} className="flex items-center gap-2 cursor-pointer">
                                             <input

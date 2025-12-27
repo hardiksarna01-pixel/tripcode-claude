@@ -719,11 +719,13 @@ CREATE TABLE b2c_sites (
     site_tagline VARCHAR(255),
     site_description TEXT,
 
-    -- Domain Configuration
-    subdomain VARCHAR(100), -- e.g., "agentname" for agentname.tripcode.in
-    custom_domain VARCHAR(255), -- e.g., "www.agenttravels.com"
+    -- Domain Configuration (Agent's own domain)
+    custom_domain VARCHAR(255) NOT NULL, -- e.g., "www.agenttravels.com" or "flights.agentsite.com"
     domain_verified BOOLEAN DEFAULT false,
+    ssl_certificate_id VARCHAR(255), -- SSL cert reference
     ssl_enabled BOOLEAN DEFAULT false,
+    dns_configured BOOLEAN DEFAULT false,
+    cname_target VARCHAR(255), -- Our CNAME target for DNS setup
 
     -- Branding
     logo_url VARCHAR(500),
@@ -1030,7 +1032,7 @@ CREATE TABLE b2c_wishlist (
 -- Indexes for B2C tables
 CREATE INDEX idx_b2c_sites_agent ON b2c_sites(agent_id);
 CREATE INDEX idx_b2c_sites_status ON b2c_sites(status);
-CREATE INDEX idx_b2c_sites_subdomain ON b2c_sites(subdomain);
+CREATE INDEX idx_b2c_sites_domain ON b2c_sites(custom_domain);
 CREATE INDEX idx_b2c_customers_site ON b2c_customers(site_id);
 CREATE INDEX idx_b2c_customers_email ON b2c_customers(site_id, email);
 CREATE INDEX idx_b2c_bookings_site ON b2c_bookings(site_id);
