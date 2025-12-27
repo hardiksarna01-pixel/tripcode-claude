@@ -38,6 +38,9 @@ const aggregatorRoutes = require('./routes/aggregator.routes');
 const hotelAggregatorRoutes = require('./routes/hotelAggregator.routes');
 const busAggregatorRoutes = require('./routes/busAggregator.routes');
 
+// Payment Gateway (5 gateways - Razorpay, PayU, CCAvenue, Stripe, PayPal)
+const paymentRoutes = require('./routes/payment.routes');
+
 // Import middleware
 const { errorHandler } = require('./middleware/error.middleware');
 const { authMiddleware } = require('./middleware/auth.middleware');
@@ -135,6 +138,9 @@ app.use('/api/v1/bus-aggregator', authMiddleware, busAggregatorRoutes);     // B
 app.use('/api/public/v1/aggregator', apiKeyAuth, apiRateLimit, aggregatorRoutes);
 app.use('/api/public/v1/hotel-aggregator', apiKeyAuth, apiRateLimit, hotelAggregatorRoutes);
 app.use('/api/public/v1/bus-aggregator', apiKeyAuth, apiRateLimit, busAggregatorRoutes);
+
+// Payment Gateway Routes (5 gateways)
+app.use('/api/v1/payments', authMiddleware, paymentRoutes);
 
 // Error handling
 app.use(errorHandler);
