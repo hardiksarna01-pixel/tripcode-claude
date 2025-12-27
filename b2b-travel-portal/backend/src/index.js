@@ -41,6 +41,9 @@ const busAggregatorRoutes = require('./routes/busAggregator.routes');
 // Payment Gateway (5 gateways - Razorpay, PayU, CCAvenue, Stripe, PayPal)
 const paymentRoutes = require('./routes/payment.routes');
 
+// Commission Engine (Route/Airline/Class-specific commissions, Agent/API groups)
+const commissionRoutes = require('./routes/commission.routes');
+
 // Import middleware
 const { errorHandler } = require('./middleware/error.middleware');
 const { authMiddleware } = require('./middleware/auth.middleware');
@@ -141,6 +144,9 @@ app.use('/api/public/v1/bus-aggregator', apiKeyAuth, apiRateLimit, busAggregator
 
 // Payment Gateway Routes (5 gateways)
 app.use('/api/v1/payments', authMiddleware, paymentRoutes);
+
+// Commission Engine Routes (Route/Airline/Class commissions, Agent/API groups)
+app.use('/api/v1/commissions', authMiddleware, commissionRoutes);
 
 // Error handling
 app.use(errorHandler);
