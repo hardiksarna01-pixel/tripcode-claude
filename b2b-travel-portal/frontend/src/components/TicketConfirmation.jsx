@@ -254,10 +254,8 @@ const TicketConfirmation = () => {
                     .agent-section { background: #f1f5f9; padding: 20px; border-radius: 8px; margin-top: 20px; }
                     .agent-section h3 { font-size: 14px; color: #475569; margin-bottom: 10px; }
                     .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 2px solid #2563eb; color: #64748b; font-size: 12px; }
-                    .copyright-footer { text-align: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid #f1f5f9; }
-                    .copyright-footer p { color: #d1d5db; }
-                    .copyright-footer .powered-by { font-size: 8px; }
-                    .copyright-footer .all-rights { font-size: 7px; margin-top: 3px; }
+                    .copyright-footer { text-align: center; margin-top: 10px; padding-top: 5px; }
+                    .copyright-footer p { font-size: 5px; color: #e5e7eb; letter-spacing: 0.5px; }
                     @media print {
                         body { padding: 0; }
                         .no-print { display: none !important; }
@@ -771,13 +769,10 @@ const TicketConfirmation = () => {
                             <p className="mt-1">Booking Date: {formatDate(booking.bookingDate)} | Generated on: {new Date().toLocaleString()}</p>
                         </div>
 
-                        {/* Copyright & Portal URL */}
-                        <div className="copyright-footer text-center mt-6 pt-4 border-t border-gray-100">
-                            <p style={{ fontSize: '8px' }} className="powered-by text-gray-300">
-                                Powered by TripCode | www.tripcode.in
-                            </p>
-                            <p style={{ fontSize: '7px' }} className="all-rights text-gray-300 mt-1">
-                                © {new Date().getFullYear()} TripCode Technologies Pvt. Ltd. All Rights Reserved.
+                        {/* Copyright & Portal URL - Minimal visibility */}
+                        <div className="copyright-footer text-center mt-4 pt-2">
+                            <p style={{ fontSize: '5px', color: '#e5e7eb', letterSpacing: '0.5px' }}>
+                                www.tripcode.in
                             </p>
                         </div>
                     </div>
