@@ -8,7 +8,7 @@ adminUsers.set('admin@flyshop.com', {
     id: 1,
     username: 'superadmin',
     email: 'admin@flyshop.com',
-    passwordHash: '$2a$10$...', // Hash of 'admin123'
+    passwordHash: '$2a$10$Yoi0GnT3Kh7fQ51m56JyTuqwFP9EN0s.TogvsDX/zkLAuaPHaJibq', // Hash of 'admin123'
     fullName: 'Super Admin',
     role: 'SUPER_ADMIN',
     permissions: ['*'], // All permissions

@@ -1,9 +1,41 @@
 const express = require('express');
 const router = express.Router();
 const { catchAsync } = require('../utils/catchAsync');
-const { adminAuth, checkPermission } = require('../middleware/admin-auth.middleware');
+const { adminAuth, checkPermission, adminLogin } = require('../middleware/admin-auth.middleware');
 
-// Apply admin auth to all routes
+// =====================================================
+// ADMIN LOGIN (Public - no auth required)
+// =====================================================
+
+/**
+ * @route   POST /api/v1/admin/login
+ * @desc    Admin login
+ */
+router.post('/login', catchAsync(async (req, res) => {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+        return res.status(400).json({
+            success: false,
+            error: 'Please provide email and password'
+        });
+    }
+
+    try {
+        const result = await adminLogin(email, password);
+        res.json({
+            success: true,
+            data: result
+        });
+    } catch (error) {
+        return res.status(401).json({
+            success: false,
+            error: error.message || 'Invalid credentials'
+        });
+    }
+}));
+
+// Apply admin auth to all routes below
 router.use(adminAuth);
 
 // =====================================================
