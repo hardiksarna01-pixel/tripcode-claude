@@ -11,7 +11,8 @@ const Layout = ({ children }) => {
 
     // Check if user is admin - by role, permissions array, or admin email pattern
     const isAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN' ||
-                    user?.permissions?.length > 0 || user?.email === 'admin@flyshop.com';
+                    user?.permissions?.length > 0 ||
+                    user?.email?.toLowerCase().includes('admin');
 
     const toggleSection = (category) => {
         setExpandedSections(prev =>
