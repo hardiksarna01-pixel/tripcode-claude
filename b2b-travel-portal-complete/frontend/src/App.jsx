@@ -21,29 +21,20 @@ import Register from './pages/auth/Register';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import AdminLogin from './pages/auth/AdminLogin';
 
-// Public Pages
-import Home from './pages/Home';
+// Public/Home Page
+import Home from './pages/home/Home';
+
+// Flight Pages
 import FlightSearch from './pages/flights/FlightSearch';
 import FlightResults from './pages/flights/FlightResults';
 import FlightBooking from './pages/flights/FlightBooking';
-import HotelSearch from './pages/hotels/HotelSearch';
-import HotelResults from './pages/hotels/HotelResults';
-import HotelDetails from './pages/hotels/HotelDetails';
-import HotelBooking from './pages/hotels/HotelBooking';
-import BusSearch from './pages/bus/BusSearch';
-import BusResults from './pages/bus/BusResults';
-import HolidayPackages from './pages/holidays/HolidayPackages';
-import HolidayDetails from './pages/holidays/HolidayDetails';
-import Activities from './pages/activities/Activities';
-import Insurance from './pages/insurance/Insurance';
-import Visa from './pages/visa/Visa';
-import Transfers from './pages/transfers/Transfers';
 
 // Agent Portal Pages
 import AgentDashboard from './pages/agent/Dashboard';
 import AgentBookings from './pages/agent/Bookings';
 import AgentWallet from './pages/agent/Wallet';
 import AgentReports from './pages/agent/Reports';
+import AgentCommissions from './pages/agent/Commissions';
 import AgentProfile from './pages/agent/Profile';
 
 // Customer Pages
@@ -54,25 +45,45 @@ import CustomerProfile from './pages/customer/Profile';
 // Admin Pages
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminAgents from './pages/admin/Agents';
-import AdminGroups from './pages/admin/Groups';
-import AdminSchemes from './pages/admin/Schemes';
-import AdminSuppliers from './pages/admin/Suppliers';
-import AdminMarkup from './pages/admin/Markup';
+import AdminBookings from './pages/admin/Bookings';
 import AdminFinance from './pages/admin/Finance';
 import AdminReports from './pages/admin/Reports';
+import AdminMarkup from './pages/admin/Markup';
+import AdminSuppliers from './pages/admin/Suppliers';
+import AdminUsers from './pages/admin/Users';
 import AdminSettings from './pages/admin/Settings';
-import AdminWhitelabel from './pages/admin/Whitelabel';
-import AdminTemplates from './pages/admin/Templates';
-import AdminApiKeys from './pages/admin/ApiKeys';
+import AdminSupport from './pages/admin/Support';
+import AdminCommissions from './pages/admin/Commissions';
+import AdminCreditManagement from './pages/admin/CreditManagement';
+import AdminCustomers from './pages/admin/Customers';
+import AdminNotifications from './pages/admin/Notifications';
+import AdminAuditLogs from './pages/admin/AuditLogs';
+import AdminAnalytics from './pages/admin/Analytics';
+import AdminFlights from './pages/admin/Flights';
+import AdminHotels from './pages/admin/Hotels';
+import AdminBuses from './pages/admin/Buses';
+import AdminHolidays from './pages/admin/Holidays';
+import AdminVisa from './pages/admin/Visa';
+import AdminInsurance from './pages/admin/Insurance';
+import AdminPromoCodes from './pages/admin/PromoCodes';
+import AdminEmailTemplates from './pages/admin/EmailTemplates';
+import AdminPaymentGateway from './pages/admin/PaymentGateway';
 
 // Super Admin Pages
 import SuperAdminDashboard from './pages/superadmin/Dashboard';
-import SuperAdminTenants from './pages/superadmin/Tenants';
-import SuperAdminAdmins from './pages/superadmin/Admins';
-
-// AI Features
-import AITripPlanner from './pages/ai/TripPlanner';
-import AIChat from './pages/ai/Chat';
+import SuperAdminCompanies from './pages/superadmin/Companies';
+import SuperAdminPlans from './pages/superadmin/Plans';
+import SuperAdminBilling from './pages/superadmin/Billing';
+import SuperAdminUsers from './pages/superadmin/Users';
+import SuperAdminAPIManagement from './pages/superadmin/APIManagement';
+import SuperAdminSystemHealth from './pages/superadmin/SystemHealth';
+import SuperAdminGlobalSettings from './pages/superadmin/GlobalSettings';
+import SuperAdminSupplierHub from './pages/superadmin/SupplierHub';
+import SuperAdminReports from './pages/superadmin/Reports';
+import SuperAdminAuditLogs from './pages/superadmin/AuditLogs';
+import SuperAdminFeatureFlags from './pages/superadmin/FeatureFlags';
+import SuperAdminAnnouncements from './pages/superadmin/Announcements';
+import SuperAdminAnalytics from './pages/superadmin/Analytics';
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -131,30 +142,6 @@ function App() {
                                 <Route path="/flights" element={<FlightSearch />} />
                                 <Route path="/flights/results" element={<FlightResults />} />
                                 <Route path="/flights/book" element={<FlightBooking />} />
-
-                                {/* Hotels */}
-                                <Route path="/hotels" element={<HotelSearch />} />
-                                <Route path="/hotels/results" element={<HotelResults />} />
-                                <Route path="/hotels/:hotelId" element={<HotelDetails />} />
-                                <Route path="/hotels/book" element={<HotelBooking />} />
-
-                                {/* Bus */}
-                                <Route path="/bus" element={<BusSearch />} />
-                                <Route path="/bus/results" element={<BusResults />} />
-
-                                {/* Holidays */}
-                                <Route path="/holidays" element={<HolidayPackages />} />
-                                <Route path="/holidays/:packageId" element={<HolidayDetails />} />
-
-                                {/* Other Products */}
-                                <Route path="/activities" element={<Activities />} />
-                                <Route path="/insurance" element={<Insurance />} />
-                                <Route path="/visa" element={<Visa />} />
-                                <Route path="/transfers" element={<Transfers />} />
-
-                                {/* AI Features */}
-                                <Route path="/trip-planner" element={<AITripPlanner />} />
-                                <Route path="/ai-chat" element={<AIChat />} />
                             </Route>
 
                             {/* Agent Portal Routes */}
@@ -170,6 +157,7 @@ function App() {
                                 <Route path="bookings" element={<AgentBookings />} />
                                 <Route path="wallet" element={<AgentWallet />} />
                                 <Route path="reports" element={<AgentReports />} />
+                                <Route path="commissions" element={<AgentCommissions />} />
                                 <Route path="profile" element={<AgentProfile />} />
                             </Route>
 
@@ -197,17 +185,30 @@ function App() {
                                 }
                             >
                                 <Route path="dashboard" element={<AdminDashboard />} />
-                                <Route path="agents/*" element={<AdminAgents />} />
-                                <Route path="groups" element={<AdminGroups />} />
-                                <Route path="schemes" element={<AdminSchemes />} />
-                                <Route path="suppliers" element={<AdminSuppliers />} />
-                                <Route path="markup" element={<AdminMarkup />} />
-                                <Route path="finance/*" element={<AdminFinance />} />
+                                <Route path="agents" element={<AdminAgents />} />
+                                <Route path="bookings" element={<AdminBookings />} />
+                                <Route path="finance" element={<AdminFinance />} />
                                 <Route path="reports" element={<AdminReports />} />
-                                <Route path="settings/*" element={<AdminSettings />} />
-                                <Route path="whitelabel" element={<AdminWhitelabel />} />
-                                <Route path="templates" element={<AdminTemplates />} />
-                                <Route path="api-keys" element={<AdminApiKeys />} />
+                                <Route path="markup" element={<AdminMarkup />} />
+                                <Route path="suppliers" element={<AdminSuppliers />} />
+                                <Route path="users" element={<AdminUsers />} />
+                                <Route path="settings" element={<AdminSettings />} />
+                                <Route path="support" element={<AdminSupport />} />
+                                <Route path="commissions" element={<AdminCommissions />} />
+                                <Route path="credit" element={<AdminCreditManagement />} />
+                                <Route path="customers" element={<AdminCustomers />} />
+                                <Route path="notifications" element={<AdminNotifications />} />
+                                <Route path="audit-logs" element={<AdminAuditLogs />} />
+                                <Route path="analytics" element={<AdminAnalytics />} />
+                                <Route path="flights" element={<AdminFlights />} />
+                                <Route path="hotels" element={<AdminHotels />} />
+                                <Route path="buses" element={<AdminBuses />} />
+                                <Route path="holidays" element={<AdminHolidays />} />
+                                <Route path="visa" element={<AdminVisa />} />
+                                <Route path="insurance" element={<AdminInsurance />} />
+                                <Route path="promo-codes" element={<AdminPromoCodes />} />
+                                <Route path="email-templates" element={<AdminEmailTemplates />} />
+                                <Route path="payment-gateway" element={<AdminPaymentGateway />} />
                             </Route>
 
                             {/* Super Admin Routes */}
@@ -220,8 +221,19 @@ function App() {
                                 }
                             >
                                 <Route path="dashboard" element={<SuperAdminDashboard />} />
-                                <Route path="tenants" element={<SuperAdminTenants />} />
-                                <Route path="admins" element={<SuperAdminAdmins />} />
+                                <Route path="companies" element={<SuperAdminCompanies />} />
+                                <Route path="plans" element={<SuperAdminPlans />} />
+                                <Route path="billing" element={<SuperAdminBilling />} />
+                                <Route path="users" element={<SuperAdminUsers />} />
+                                <Route path="api" element={<SuperAdminAPIManagement />} />
+                                <Route path="system-health" element={<SuperAdminSystemHealth />} />
+                                <Route path="settings" element={<SuperAdminGlobalSettings />} />
+                                <Route path="suppliers" element={<SuperAdminSupplierHub />} />
+                                <Route path="reports" element={<SuperAdminReports />} />
+                                <Route path="audit-logs" element={<SuperAdminAuditLogs />} />
+                                <Route path="feature-flags" element={<SuperAdminFeatureFlags />} />
+                                <Route path="announcements" element={<SuperAdminAnnouncements />} />
+                                <Route path="analytics" element={<SuperAdminAnalytics />} />
                             </Route>
 
                             {/* 404 */}
