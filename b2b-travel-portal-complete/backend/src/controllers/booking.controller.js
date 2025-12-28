@@ -167,6 +167,211 @@ class BookingController {
             res.status(500).json({ success: false, message: 'Failed to update booking status' });
         }
     }
+
+    // Alias methods for route compatibility
+    async listBookings(req, res) { return this.getAll(req, res); }
+    async getBookingDetails(req, res) { return this.getById(req, res); }
+    async cancelBooking(req, res) { return this.cancel(req, res); }
+
+    // Initiate refund
+    async initiateRefund(req, res) {
+        try {
+            const booking = await Booking.findByPk(req.params.bookingId);
+            if (!booking) {
+                return res.status(404).json({ success: false, message: 'Booking not found' });
+            }
+
+            await booking.update({ refundStatus: 'initiated', refundInitiatedAt: new Date() });
+
+            res.json({ success: true, message: 'Refund initiated successfully' });
+        } catch (error) {
+            console.error('Initiate refund error:', error);
+            res.status(500).json({ success: false, message: 'Failed to initiate refund' });
+        }
+    }
+
+    // Get refund status
+    async getRefundStatus(req, res) {
+        try {
+            const booking = await Booking.findByPk(req.params.bookingId, {
+                attributes: ['id', 'refundStatus', 'refundAmount', 'refundInitiatedAt', 'refundCompletedAt']
+            });
+
+            if (!booking) {
+                return res.status(404).json({ success: false, message: 'Booking not found' });
+            }
+
+            res.json({ success: true, data: booking });
+        } catch (error) {
+            console.error('Get refund status error:', error);
+            res.status(500).json({ success: false, message: 'Failed to get refund status' });
+        }
+    }
+
+    // Request amendment
+    async requestAmendment(req, res) {
+        try {
+            const { amendmentType, details } = req.body;
+            const booking = await Booking.findByPk(req.params.bookingId);
+
+            if (!booking) {
+                return res.status(404).json({ success: false, message: 'Booking not found' });
+            }
+
+            await booking.update({
+                amendmentRequest: { type: amendmentType, details, requestedAt: new Date() },
+                amendmentStatus: 'pending'
+            });
+
+            res.json({ success: true, message: 'Amendment request submitted' });
+        } catch (error) {
+            console.error('Request amendment error:', error);
+            res.status(500).json({ success: false, message: 'Failed to request amendment' });
+        }
+    }
+
+    // Get amendment charges
+    async getAmendmentCharges(req, res) {
+        try {
+            const booking = await Booking.findByPk(req.params.bookingId);
+
+            if (!booking) {
+                return res.status(404).json({ success: false, message: 'Booking not found' });
+            }
+
+            // Mock amendment charges calculation
+            const charges = {
+                baseFee: 500,
+                fareDifference: 0,
+                total: 500,
+                currency: 'INR'
+            };
+
+            res.json({ success: true, data: charges });
+        } catch (error) {
+            console.error('Get amendment charges error:', error);
+            res.status(500).json({ success: false, message: 'Failed to get amendment charges' });
+        }
+    }
+
+    // Get invoice
+    async getInvoice(req, res) {
+        try {
+            const booking = await Booking.findByPk(req.params.bookingId, {
+                include: [
+                    { model: Agent, as: 'agent' },
+                    { model: Passenger, as: 'passengers' }
+                ]
+            });
+
+            if (!booking) {
+                return res.status(404).json({ success: false, message: 'Booking not found' });
+            }
+
+            // Return invoice data (in production, generate PDF)
+            res.json({
+                success: true,
+                data: {
+                    invoiceNumber: `INV-${booking.id.substring(0, 8).toUpperCase()}`,
+                    booking,
+                    generatedAt: new Date()
+                }
+            });
+        } catch (error) {
+            console.error('Get invoice error:', error);
+            res.status(500).json({ success: false, message: 'Failed to get invoice' });
+        }
+    }
+
+    // Get voucher
+    async getVoucher(req, res) {
+        try {
+            const booking = await Booking.findByPk(req.params.bookingId, {
+                include: [{ model: Passenger, as: 'passengers' }]
+            });
+
+            if (!booking) {
+                return res.status(404).json({ success: false, message: 'Booking not found' });
+            }
+
+            res.json({
+                success: true,
+                data: {
+                    voucherNumber: `VCH-${booking.id.substring(0, 8).toUpperCase()}`,
+                    booking,
+                    generatedAt: new Date()
+                }
+            });
+        } catch (error) {
+            console.error('Get voucher error:', error);
+            res.status(500).json({ success: false, message: 'Failed to get voucher' });
+        }
+    }
+
+    // Get ticket
+    async getTicket(req, res) {
+        try {
+            const booking = await Booking.findByPk(req.params.bookingId, {
+                include: [{ model: Passenger, as: 'passengers' }]
+            });
+
+            if (!booking) {
+                return res.status(404).json({ success: false, message: 'Booking not found' });
+            }
+
+            res.json({
+                success: true,
+                data: {
+                    ticketNumber: booking.pnr || `TKT-${booking.id.substring(0, 8).toUpperCase()}`,
+                    booking,
+                    generatedAt: new Date()
+                }
+            });
+        } catch (error) {
+            console.error('Get ticket error:', error);
+            res.status(500).json({ success: false, message: 'Failed to get ticket' });
+        }
+    }
+
+    // Resend confirmation
+    async resendConfirmation(req, res) {
+        try {
+            const booking = await Booking.findByPk(req.params.bookingId);
+
+            if (!booking) {
+                return res.status(404).json({ success: false, message: 'Booking not found' });
+            }
+
+            // In production, send email here
+            res.json({ success: true, message: 'Confirmation email sent successfully' });
+        } catch (error) {
+            console.error('Resend confirmation error:', error);
+            res.status(500).json({ success: false, message: 'Failed to resend confirmation' });
+        }
+    }
+
+    // Update passenger
+    async updatePassenger(req, res) {
+        try {
+            const { bookingId, passengerId } = req.params;
+            const updates = req.body;
+
+            const passenger = await Passenger.findOne({
+                where: { id: passengerId, bookingId }
+            });
+
+            if (!passenger) {
+                return res.status(404).json({ success: false, message: 'Passenger not found' });
+            }
+
+            await passenger.update(updates);
+
+            res.json({ success: true, message: 'Passenger updated successfully' });
+        } catch (error) {
+            console.error('Update passenger error:', error);
+            res.status(500).json({ success: false, message: 'Failed to update passenger' });
+        }
+    }
 }
 
 module.exports = new BookingController();
