@@ -9,10 +9,16 @@ const Layout = ({ children }) => {
     const navigate = useNavigate();
     const { user, logout } = useAuthStore();
 
+    // Debug: log user object to console
+    console.log('Layout - User object:', JSON.stringify(user, null, 2));
+
     // Check if user is admin - by role, permissions array, or admin email pattern
     const isAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN' ||
                     user?.permissions?.length > 0 ||
-                    user?.email?.toLowerCase().includes('admin');
+                    user?.email?.toLowerCase?.().includes?.('admin') ||
+                    user?.fullName?.toLowerCase?.().includes?.('admin');
+
+    console.log('Layout - isAdmin:', isAdmin);
 
     const toggleSection = (category) => {
         setExpandedSections(prev =>
@@ -200,6 +206,13 @@ const Layout = ({ children }) => {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={sidebarOpen ? "M11 19l-7-7 7-7m8 14l-7-7 7-7" : "M13 5l7 7-7 7M5 5l7 7-7 7"} />
                         </svg>
                     </button>
+                </div>
+
+                {/* Debug Banner - Remove after fixing */}
+                <div className="bg-yellow-100 p-2 text-xs border-b">
+                    <div>Role: {user?.role || 'none'}</div>
+                    <div>Email: {user?.email || 'none'}</div>
+                    <div>isAdmin: {isAdmin ? 'YES' : 'NO'}</div>
                 </div>
 
                 {/* Menu */}
