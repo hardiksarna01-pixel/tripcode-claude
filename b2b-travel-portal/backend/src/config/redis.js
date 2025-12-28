@@ -1,120 +1,73 @@
-const { createClient } = require('redis');
-
 /**
- * Redis Cache Configuration
- * Handles caching for sectors, search results, and sessions
+ * In-Memory Cache Mock
+ * Replaces Redis with in-memory storage for development without Redis
  */
-class RedisCache {
+class InMemoryCache {
     constructor() {
-        this.client = null;
-        this.isConnected = false;
+        this.cache = new Map();
+        this.isConnected = true;
     }
 
     /**
-     * Initialize Redis connection
+     * Initialize connection (mock - always succeeds)
      */
     async connect() {
-        if (this.client && this.isConnected) {
-            return this.client;
-        }
-
-        this.client = createClient({
-            url: process.env.REDIS_URL || 'redis://localhost:6379'
-        });
-
-        this.client.on('error', (err) => {
-            console.error('Redis Client Error:', err);
-            this.isConnected = false;
-        });
-
-        this.client.on('connect', () => {
-            console.log('✅ Redis connected successfully');
-            this.isConnected = true;
-        });
-
-        this.client.on('disconnect', () => {
-            console.log('Redis disconnected');
-            this.isConnected = false;
-        });
-
-        try {
-            await this.client.connect();
-        } catch (error) {
-            console.warn('⚠️ Redis connection failed, continuing without cache:', error.message);
-            this.isConnected = false;
-        }
-
-        return this.client;
+        this.isConnected = true;
+        console.log('✅ In-memory cache initialized successfully');
+        return this;
     }
 
     /**
-     * Check if Redis is available
+     * Check if cache is available
      */
     isAvailable() {
-        return this.isConnected && this.client;
+        return this.isConnected;
     }
 
     /**
      * Get value from cache
      */
     async get(key) {
-        if (!this.isAvailable()) return null;
+        const item = this.cache.get(key);
+        if (!item) return null;
 
-        try {
-            const value = await this.client.get(key);
-            return value ? JSON.parse(value) : null;
-        } catch (error) {
-            console.error('Redis get error:', error);
+        // Check if expired
+        if (item.expiry && Date.now() > item.expiry) {
+            this.cache.delete(key);
             return null;
         }
+
+        return item.value;
     }
 
     /**
      * Set value in cache with optional TTL (in seconds)
      */
     async set(key, value, ttlSeconds = 300) {
-        if (!this.isAvailable()) return false;
-
-        try {
-            await this.client.setEx(key, ttlSeconds, JSON.stringify(value));
-            return true;
-        } catch (error) {
-            console.error('Redis set error:', error);
-            return false;
-        }
+        const expiry = ttlSeconds ? Date.now() + (ttlSeconds * 1000) : null;
+        this.cache.set(key, { value, expiry });
+        return true;
     }
 
     /**
      * Delete a key from cache
      */
     async del(key) {
-        if (!this.isAvailable()) return false;
-
-        try {
-            await this.client.del(key);
-            return true;
-        } catch (error) {
-            console.error('Redis del error:', error);
-            return false;
-        }
+        this.cache.delete(key);
+        return true;
     }
 
     /**
-     * Delete keys matching a pattern
+     * Delete keys matching a pattern (simple wildcard support)
      */
     async delPattern(pattern) {
-        if (!this.isAvailable()) return false;
-
-        try {
-            const keys = await this.client.keys(pattern);
-            if (keys.length > 0) {
-                await this.client.del(keys);
+        const regex = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$');
+        for (const key of this.cache.keys()) {
+            if (regex.test(key)) {
+                this.cache.delete(key);
             }
-            return true;
-        } catch (error) {
-            console.error('Redis delPattern error:', error);
-            return false;
         }
+        return true;
     }
 
     /**
@@ -185,16 +138,25 @@ class RedisCache {
     }
 
     /**
-     * Close Redis connection
+     * Close connection (mock)
      */
     async close() {
-        if (this.client) {
-            await this.client.quit();
-            this.client = null;
-            this.isConnected = false;
-            console.log('Redis connection closed');
+        this.cache.clear();
+        this.isConnected = false;
+        console.log('In-memory cache closed');
+    }
+
+    /**
+     * Clean up expired entries (optional maintenance)
+     */
+    cleanup() {
+        const now = Date.now();
+        for (const [key, item] of this.cache.entries()) {
+            if (item.expiry && now > item.expiry) {
+                this.cache.delete(key);
+            }
         }
     }
 }
 
-module.exports = new RedisCache();
+module.exports = new InMemoryCache();
