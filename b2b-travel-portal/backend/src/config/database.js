@@ -1,118 +1,149 @@
-const { Pool } = require('pg');
-
 /**
- * PostgreSQL Database Configuration
- * Handles connection pooling and query execution
+ * In-Memory Database Mock
+ * Replaces PostgreSQL with in-memory storage for development without database
  */
-class Database {
+
+class InMemoryDatabase {
     constructor() {
-        this.pool = null;
+        this.tables = new Map();
+        this.connected = false;
     }
 
     /**
-     * Initialize database connection pool
+     * Initialize database connection (mock)
      */
     async connect() {
-        if (this.pool) {
-            return this.pool;
+        if (this.connected) {
+            return this;
         }
 
-        this.pool = new Pool({
-            connectionString: process.env.DATABASE_URL,
-            max: 20,
-            idleTimeoutMillis: 30000,
-            connectionTimeoutMillis: 2000,
-        });
+        // Initialize default tables
+        this.tables.set('admins', new Map());
+        this.tables.set('agents', new Map());
+        this.tables.set('bookings', new Map());
+        this.tables.set('transactions', new Map());
+        this.tables.set('airlines', new Map());
+        this.tables.set('airports', new Map());
+        this.tables.set('schemes', new Map());
 
-        // Test connection
-        try {
-            const client = await this.pool.connect();
-            console.log('✅ Database connected successfully');
-            client.release();
-        } catch (error) {
-            console.error('❌ Database connection failed:', error.message);
-            throw error;
-        }
-
-        // Handle pool errors
-        this.pool.on('error', (err) => {
-            console.error('Unexpected database error:', err);
-        });
-
-        return this.pool;
+        this.connected = true;
+        console.log('✅ In-memory database initialized successfully');
+        return this;
     }
 
     /**
-     * Execute a query
+     * Execute a query (mock implementation)
+     * Returns empty results for SELECT, affected count for INSERT/UPDATE/DELETE
      */
-    async query(text, params) {
+    async query(text, params = []) {
         const start = Date.now();
-        try {
-            const result = await this.pool.query(text, params);
-            const duration = Date.now() - start;
+        const duration = Date.now() - start;
 
-            if (process.env.LOG_LEVEL === 'debug') {
-                console.log('Query executed:', { text: text.substring(0, 100), duration, rows: result.rowCount });
-            }
-
-            return result;
-        } catch (error) {
-            console.error('Query error:', { text, error: error.message });
-            throw error;
+        if (process.env.LOG_LEVEL === 'debug') {
+            console.log('Query executed (mock):', { text: text.substring(0, 100), duration, rows: 0 });
         }
+
+        // Return mock result structure
+        return {
+            rows: [],
+            rowCount: 0,
+            command: text.split(' ')[0].toUpperCase(),
+            fields: []
+        };
     }
 
     /**
-     * Get a client from the pool for transactions
+     * Get a client from the pool for transactions (mock)
      */
     async getClient() {
-        const client = await this.pool.connect();
-        const query = client.query;
-        const release = client.release;
-
-        // Set a timeout of 5 seconds for idle transactions
-        const timeout = setTimeout(() => {
-            console.error('A client has been checked out for more than 5 seconds!');
-        }, 5000);
-
-        client.release = () => {
-            clearTimeout(timeout);
-            client.query = query;
-            client.release = release;
-            return release.apply(client);
+        const self = this;
+        return {
+            query: async (text, params) => self.query(text, params),
+            release: () => {},
         };
-
-        return client;
     }
 
     /**
-     * Execute a transaction
+     * Execute a transaction (mock)
      */
     async transaction(callback) {
         const client = await this.getClient();
         try {
-            await client.query('BEGIN');
+            // No actual BEGIN needed for in-memory
             const result = await callback(client);
-            await client.query('COMMIT');
+            // No actual COMMIT needed
             return result;
         } catch (error) {
-            await client.query('ROLLBACK');
+            // No actual ROLLBACK needed
             throw error;
-        } finally {
-            client.release();
         }
     }
 
     /**
-     * Close the pool
+     * Close the pool (mock)
      */
     async close() {
-        if (this.pool) {
-            await this.pool.end();
-            this.pool = null;
-            console.log('Database pool closed');
+        this.tables.clear();
+        this.connected = false;
+        console.log('In-memory database closed');
+    }
+
+    /**
+     * Helper: Get a table
+     */
+    getTable(tableName) {
+        if (!this.tables.has(tableName)) {
+            this.tables.set(tableName, new Map());
         }
+        return this.tables.get(tableName);
+    }
+
+    /**
+     * Helper: Insert into table
+     */
+    insert(tableName, id, data) {
+        const table = this.getTable(tableName);
+        table.set(id, { ...data, id });
+        return { id, ...data };
+    }
+
+    /**
+     * Helper: Find by ID
+     */
+    findById(tableName, id) {
+        const table = this.getTable(tableName);
+        return table.get(id) || null;
+    }
+
+    /**
+     * Helper: Find all
+     */
+    findAll(tableName) {
+        const table = this.getTable(tableName);
+        return Array.from(table.values());
+    }
+
+    /**
+     * Helper: Update
+     */
+    update(tableName, id, data) {
+        const table = this.getTable(tableName);
+        const existing = table.get(id);
+        if (existing) {
+            const updated = { ...existing, ...data };
+            table.set(id, updated);
+            return updated;
+        }
+        return null;
+    }
+
+    /**
+     * Helper: Delete
+     */
+    delete(tableName, id) {
+        const table = this.getTable(tableName);
+        return table.delete(id);
     }
 }
 
-module.exports = new Database();
+module.exports = new InMemoryDatabase();
