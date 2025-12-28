@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import useAuthStore from './store/authStore';
+import { useAuthStore } from './store/authStore';
 
 // Auth Components
 import LoginPage from './components/auth/LoginPage';

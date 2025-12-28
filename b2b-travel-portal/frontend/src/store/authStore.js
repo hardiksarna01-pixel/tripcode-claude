@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { authAPI } from '../services/api';
+import { authApi } from '../services/api';
 
 export const useAuthStore = create(
   persist(
@@ -15,13 +15,13 @@ export const useAuthStore = create(
       adminLogin: async (email, password) => {
         set({ isLoading: true, error: null });
         try {
-          const response = await authAPI.adminLogin(email, password);
-          const { token, admin } = response.data.data;
+          const response = await authApi.login(email, password);
+          const { token, admin } = response.data || response;
 
-          localStorage.setItem('token', token);
+          localStorage.setItem('authToken', token);
 
           set({
-            user: admin,
+            user: admin || response.agent,
             token,
             isAuthenticated: true,
             isLoading: false,
@@ -29,7 +29,7 @@ export const useAuthStore = create(
 
           return { success: true };
         } catch (error) {
-          const message = error.response?.data?.error || 'Login failed';
+          const message = error?.error || error?.message || 'Login failed';
           set({ error: message, isLoading: false });
           return { success: false, error: message };
         }
@@ -39,10 +39,10 @@ export const useAuthStore = create(
       agentLogin: async (email, password) => {
         set({ isLoading: true, error: null });
         try {
-          const response = await authAPI.agentLogin(email, password);
-          const { token, agent } = response.data.data;
+          const response = await authApi.login(email, password);
+          const { token, agent } = response.data || response;
 
-          localStorage.setItem('token', token);
+          localStorage.setItem('authToken', token);
 
           set({
             user: { ...agent, role: 'AGENT' },
@@ -53,7 +53,7 @@ export const useAuthStore = create(
 
           return { success: true };
         } catch (error) {
-          const message = error.response?.data?.error || 'Login failed';
+          const message = error?.error || error?.message || 'Login failed';
           set({ error: message, isLoading: false });
           return { success: false, error: message };
         }
@@ -61,7 +61,8 @@ export const useAuthStore = create(
 
       // Logout
       logout: () => {
-        localStorage.removeItem('token');
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('agent');
         set({
           user: null,
           token: null,

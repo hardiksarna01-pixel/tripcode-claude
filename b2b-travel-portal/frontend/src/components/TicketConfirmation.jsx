@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { bookingApi } from '../services/api';
-import useAuthStore from '../store/authStore';
+import { useAuthStore } from '../store/authStore';
 
 /**
  * Ticket Confirmation Component

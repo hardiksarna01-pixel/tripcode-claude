@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import useFlightStore from '../store/flightStore';
-import useAuthStore from '../store/authStore';
+import { useAuthStore } from '../store/authStore';
 
 // Fare type configuration with icons and colors
 const FARE_TYPE_CONFIG = {
@@ -25,7 +25,7 @@ const FlightSearchPage = () => {
     swapCities
   } = useFlightStore();
 
-  const { agent } = useAuthStore();
+  const { user: agent } = useAuthStore();
 
   // Get agent preferences with defaults
   const agentPreferences = agent?.preferences || {
