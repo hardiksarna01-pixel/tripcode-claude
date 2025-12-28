@@ -2,11 +2,16 @@
  * Async handler wrapper
  * Eliminates need for try-catch in every controller
  */
-exports.catchAsync = (fn) => {
+const catchAsync = (fn) => {
     return (req, res, next) => {
         Promise.resolve(fn(req, res, next)).catch(next);
     };
 };
+
+// Support both import styles
+exports.catchAsync = catchAsync;
+module.exports.catchAsync = catchAsync;
+module.exports.default = catchAsync;
 
 /**
  * Generate unique request ID
