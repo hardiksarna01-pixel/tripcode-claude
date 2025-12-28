@@ -1,159 +1,418 @@
 import axios from 'axios';
 
+/**
+ * API Service
+ * Handles all HTTP requests to the backend
+ */
+
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api/v1';
 
-// Create axios instance
+// Create axios instance with default config
 const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+    baseURL: API_BASE_URL,
+    timeout: 30000,
+    headers: {
+        'Content-Type': 'application/json'
+    }
 });
 
-// Request interceptor to add auth token
+// Request interceptor - add auth token
 api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    (config) => {
+        const token = localStorage.getItem('authToken');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
     }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
 );
 
-// Response interceptor for error handling
+// Response interceptor - handle errors
 api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+    (response) => response.data,
+    (error) => {
+        if (error.response) {
+            switch (error.response.status) {
+                case 401:
+                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('agent');
+                    if (window.location.pathname !== '/login') {
+                        window.location.href = '/login';
+                    }
+                    break;
+                case 403:
+                    console.error('Access forbidden');
+                    break;
+                case 429:
+                    console.error('Rate limit exceeded');
+                    break;
+                default:
+                    break;
+            }
+            return Promise.reject(error.response.data);
+        }
+        return Promise.reject({ error: 'Network error. Please check your connection.' });
     }
-    return Promise.reject(error);
-  }
 );
 
-// Auth API
-export const authAPI = {
-  adminLogin: (email, password) =>
-    api.post('/admin/login', { email, password }),
+/**
+ * Authentication API
+ */
+export const authApi = {
+    login: (email, password) =>
+        api.post('/auth/login', { email, password }),
 
-  agentLogin: (email, password) =>
-    api.post('/auth/login', { email, password }),
+    register: (data) =>
+        api.post('/auth/register', data),
 
-  agentRegister: (data) =>
-    api.post('/auth/register', data),
+    getMe: () =>
+        api.get('/auth/me'),
 
-  getProfile: () =>
-    api.get('/auth/me'),
+    logout: () => {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('agent');
+    }
 };
 
-// Flights API
-export const flightsAPI = {
-  search: (params) =>
-    api.post('/flights/search', params),
+/**
+ * Flight API
+ */
+export const flightApi = {
+    getSectors: () =>
+        api.get('/flights/sectors'),
 
-  reprice: (data) =>
-    api.post('/flights/reprice', data),
+    getFareTypes: () =>
+        api.get('/flights/fare-types'),
 
-  getSSR: (data) =>
-    api.post('/flights/ssr', data),
+    search: (searchParams) =>
+        api.post('/flights/search', searchParams),
 
-  getSeatMap: (data) =>
-    api.post('/flights/seatmap', data),
+    reprice: (searchKey, selectedFlights) =>
+        api.post('/flights/reprice', { searchKey, selectedFlights }),
 
-  getAirlines: () =>
-    api.get('/flights/airlines'),
+    getSSR: (searchKey, flightKey) =>
+        api.post('/flights/ssr', { searchKey, flightKey }),
 
-  getAirports: (query) =>
-    api.get(`/flights/airports?query=${query}`),
+    getSeatMap: (searchKey, flightKey) =>
+        api.post('/flights/seatmap', { searchKey, flightKey }),
+
+    getAirlines: () =>
+        api.get('/flights/airlines'),
+
+    getAirports: (query) =>
+        api.get('/flights/airports', { params: { query } })
 };
 
-// Bookings API
-export const bookingsAPI = {
-  create: (data) =>
-    api.post('/bookings/create', data),
+/**
+ * Booking API
+ */
+export const bookingApi = {
+    create: (bookingData) =>
+        api.post('/bookings/create', bookingData),
 
-  confirm: (data) =>
-    api.post('/bookings/confirm', data),
+    confirm: (bookingRefNo, airlinePnr, clientRefNo) =>
+        api.post('/bookings/confirm', { bookingRefNo, airlinePnr, clientRefNo }),
 
-  getDetails: (refNo) =>
-    api.get(`/bookings/${refNo}`),
+    getDetails: (refNo, airlinePnr) =>
+        api.get(`/bookings/${refNo}`, { params: { airlinePnr } }),
 
-  getHistory: (params) =>
-    api.get('/bookings', { params }),
+    getHistory: (filters) =>
+        api.get('/bookings', { params: filters }),
 
-  cancel: (refNo, data) =>
-    api.post(`/bookings/${refNo}/cancel`, data),
+    cancel: (refNo, cancellationType, passengers) =>
+        api.post(`/bookings/${refNo}/cancel`, { cancellationType, passengers }),
+
+    releasePnr: (refNo, airlinePnr) =>
+        api.post(`/bookings/${refNo}/release`, { airlinePnr }),
+
+    getCancellationCharges: (refNo) =>
+        api.get(`/bookings/${refNo}/cancellation-charges`)
 };
 
-// Wallet API
-export const walletAPI = {
-  getBalance: () =>
-    api.get('/wallet/balance'),
+/**
+ * Wallet API
+ */
+export const walletApi = {
+    getBalance: () =>
+        api.get('/wallet/balance'),
 
-  getTransactions: () =>
-    api.get('/wallet/transactions'),
+    getTransactions: (filters) =>
+        api.get('/wallet/transactions', { params: filters }),
+
+    getSummary: (period) =>
+        api.get('/wallet/summary', { params: { period } }),
+
+    addFunds: (amount, paymentMethod, reference) =>
+        api.post('/wallet/add-funds', { amount, paymentMethod, reference }),
+
+    requestCreditIncrease: (requestedLimit, reason) =>
+        api.post('/wallet/request-credit', { requestedLimit, reason })
 };
 
-// Admin API
-export const adminAPI = {
-  getDashboard: () =>
-    api.get('/admin/dashboard'),
+/**
+ * Markup API
+ */
+export const markupApi = {
+    getConfig: () =>
+        api.get('/markups/config'),
 
-  // Agents
-  getAgents: (params) =>
-    api.get('/admin/agents', { params }),
+    getMarkups: () =>
+        api.get('/markups'),
 
-  getAgent: (id) =>
-    api.get(`/admin/agents/${id}`),
+    createMarkup: (data) =>
+        api.post('/markups', data),
 
-  updateAgent: (id, data) =>
-    api.put(`/admin/agents/${id}`, data),
+    updateMarkup: (id, data) =>
+        api.put(`/markups/${id}`, data),
 
-  updateAgentStatus: (id, data) =>
-    api.put(`/admin/agents/${id}/status`, data),
+    deleteMarkup: (id) =>
+        api.delete(`/markups/${id}`),
 
-  // Signup Requests
-  getSignupRequests: (params) =>
-    api.get('/admin/signup-requests', { params }),
+    toggleMarkup: (id) =>
+        api.post(`/markups/${id}/toggle`)
+};
 
-  approveSignup: (id, data) =>
-    api.post(`/admin/signup-requests/${id}/approve`, data),
+/**
+ * Customer API
+ */
+export const customerApi = {
+    getCustomers: (filters) =>
+        api.get('/customers', { params: filters }),
 
-  rejectSignup: (id, data) =>
-    api.post(`/admin/signup-requests/${id}/reject`, data),
+    getCustomer: (id) =>
+        api.get(`/customers/${id}`),
 
-  // Schemes
-  getSchemes: () =>
-    api.get('/admin/schemes'),
+    createCustomer: (data) =>
+        api.post('/customers', data),
 
-  createScheme: (data) =>
-    api.post('/admin/schemes', data),
+    updateCustomer: (id, data) =>
+        api.put(`/customers/${id}`, data),
 
-  updateScheme: (id, data) =>
-    api.put(`/admin/schemes/${id}`, data),
+    deleteCustomer: (id) =>
+        api.delete(`/customers/${id}`),
 
-  // API Providers
-  getApiProviders: () =>
-    api.get('/admin/api-providers'),
+    searchCustomers: (query) =>
+        api.get('/customers/search', { params: { q: query } }),
 
-  createApiProvider: (data) =>
-    api.post('/admin/api-providers', data),
+    getFrequentTravelers: () =>
+        api.get('/customers/frequent'),
 
-  updateApiProvider: (id, data) =>
-    api.put(`/admin/api-providers/${id}`, data),
+    importCustomers: (customers) =>
+        api.post('/customers/import', { customers }),
 
-  // Groups
-  getGroups: () =>
-    api.get('/admin/groups'),
+    getCustomerBookings: (id) =>
+        api.get(`/customers/${id}/bookings`)
+};
 
-  createGroup: (data) =>
-    api.post('/admin/groups', data),
+/**
+ * Analytics API
+ */
+export const analyticsApi = {
+    getDashboardStats: (period) =>
+        api.get('/analytics/dashboard', { params: { period } }),
+
+    getBookingAnalytics: (period, groupBy) =>
+        api.get('/analytics/bookings', { params: { period, groupBy } }),
+
+    getRevenueAnalytics: (period) =>
+        api.get('/analytics/revenue', { params: { period } }),
+
+    getTopRoutes: (period, limit) =>
+        api.get('/analytics/top-routes', { params: { period, limit } }),
+
+    getTopAirlines: (period) =>
+        api.get('/analytics/top-airlines', { params: { period } }),
+
+    getPerformanceMetrics: (period) =>
+        api.get('/analytics/performance', { params: { period } }),
+
+    getMonthlySummary: (year) =>
+        api.get('/analytics/monthly', { params: { year } }),
+
+    getCommissionReport: (period) =>
+        api.get('/analytics/commission', { params: { period } }),
+
+    exportReport: (type, format, period) =>
+        api.get('/analytics/export', { params: { type, format, period } })
+};
+
+/**
+ * Invoice API
+ */
+export const invoiceApi = {
+    getInvoices: (filters) =>
+        api.get('/invoices', { params: filters }),
+
+    getInvoice: (id) =>
+        api.get(`/invoices/${id}`),
+
+    getInvoiceByBooking: (bookingRef) =>
+        api.get(`/invoices/booking/${bookingRef}`),
+
+    generateInvoice: (data) =>
+        api.post('/invoices/generate', data),
+
+    downloadInvoice: (id) =>
+        api.get(`/invoices/${id}/download`),
+
+    emailInvoice: (id, email) =>
+        api.post(`/invoices/${id}/email`, { email }),
+
+    addGstDetails: (id, gstDetails) =>
+        api.put(`/invoices/${id}/gst`, gstDetails),
+
+    getGstSummary: (params) =>
+        api.get('/invoices/gst-summary', { params }),
+
+    getGstProfiles: () =>
+        api.get('/invoices/gst-profiles')
+};
+
+/**
+ * Group Booking API
+ */
+export const groupBookingApi = {
+    getRequests: (filters) =>
+        api.get('/group-bookings', { params: filters }),
+
+    getRequest: (id) =>
+        api.get(`/group-bookings/${id}`),
+
+    createRequest: (data) =>
+        api.post('/group-bookings', data),
+
+    updateRequest: (id, data) =>
+        api.put(`/group-bookings/${id}`, data),
+
+    cancelRequest: (id, reason) =>
+        api.post(`/group-bookings/${id}/cancel`, { reason }),
+
+    acceptQuote: (id, quoteId) =>
+        api.post(`/group-bookings/${id}/accept-quote`, { quoteId }),
+
+    getPurposes: () =>
+        api.get('/group-bookings/purposes'),
+
+    getStats: () =>
+        api.get('/group-bookings/stats')
+};
+
+/**
+ * Fare Calendar API
+ */
+export const fareCalendarApi = {
+    getCalendar: (origin, destination, month, year, cabinClass) =>
+        api.get('/fare-calendar/calendar', {
+            params: { origin, destination, month, year, cabinClass }
+        }),
+
+    getTrend: (origin, destination, days) =>
+        api.get('/fare-calendar/trend', {
+            params: { origin, destination, days }
+        }),
+
+    getFlexibleFares: (origin, destination, departureDate, flexDays) =>
+        api.get('/fare-calendar/flexible', {
+            params: { origin, destination, departureDate, flexDays }
+        }),
+
+    comparePrices: (origin, destination, dates) =>
+        api.post('/fare-calendar/compare', { origin, destination, dates }),
+
+    // Price Alerts
+    getAlerts: (active) =>
+        api.get('/fare-calendar/alerts', { params: { active } }),
+
+    getAlert: (id) =>
+        api.get(`/fare-calendar/alerts/${id}`),
+
+    createAlert: (data) =>
+        api.post('/fare-calendar/alerts', data),
+
+    updateAlert: (id, data) =>
+        api.put(`/fare-calendar/alerts/${id}`, data),
+
+    deleteAlert: (id) =>
+        api.delete(`/fare-calendar/alerts/${id}`),
+
+    toggleAlert: (id) =>
+        api.post(`/fare-calendar/alerts/${id}/toggle`)
+};
+
+/**
+ * Agent API
+ */
+export const agentApi = {
+    getProfile: () =>
+        api.get('/agents/profile'),
+
+    updateProfile: (data) =>
+        api.put('/agents/profile', data),
+
+    changePassword: (currentPassword, newPassword) =>
+        api.post('/agents/change-password', { currentPassword, newPassword }),
+
+    getStats: (period) =>
+        api.get('/agents/stats', { params: { period } })
+};
+
+/**
+ * Admin API
+ */
+export const adminApi = {
+    // Agent Management
+    getAgents: (filters) =>
+        api.get('/admin/agents', { params: filters }),
+
+    approveAgent: (agentId) =>
+        api.post(`/admin/agents/${agentId}/approve`),
+
+    rejectAgent: (agentId, reason) =>
+        api.post(`/admin/agents/${agentId}/reject`, { reason }),
+
+    blockAgent: (agentId, reason) =>
+        api.post(`/admin/agents/${agentId}/block`, { reason }),
+
+    // Scheme Management
+    getSchemes: () =>
+        api.get('/admin/schemes'),
+
+    createScheme: (data) =>
+        api.post('/admin/schemes', data),
+
+    updateScheme: (id, data) =>
+        api.put(`/admin/schemes/${id}`, data),
+
+    // API Provider Management
+    getApiProviders: () =>
+        api.get('/admin/api-providers'),
+
+    createApiProvider: (data) =>
+        api.post('/admin/api-providers', data),
+
+    updateApiProvider: (id, data) =>
+        api.put(`/admin/api-providers/${id}`, data),
+
+    // Group Management
+    getGroups: () =>
+        api.get('/admin/groups'),
+
+    createGroup: (data) =>
+        api.post('/admin/groups', data),
+
+    // Reports
+    getBookingReport: (filters) =>
+        api.get('/admin/reports/bookings', { params: filters }),
+
+    getRevenueReport: (filters) =>
+        api.get('/admin/reports/revenue', { params: filters }),
+
+    // Signup Requests
+    getSignupRequests: (filters) =>
+        api.get('/admin/signup-requests', { params: filters })
 };
 
 export default api;
