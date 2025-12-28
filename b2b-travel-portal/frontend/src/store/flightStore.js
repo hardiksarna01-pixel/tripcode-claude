@@ -29,6 +29,17 @@ const useFlightStore = create((set, get) => ({
   airports: [],
   sectors: [],
 
+  // Fare types
+  availableFareTypes: [],
+  fareTypeInfo: {
+    REGULAR: { name: 'Regular', description: 'Standard fares for all passengers' },
+    ARMED_FORCES: { name: 'Armed Forces', description: 'Special fares for defense personnel' },
+    STUDENT: { name: 'Student', description: 'Discounted fares for students with valid ID' },
+    SENIOR_CITIZEN: { name: 'Senior Citizen', description: 'Special fares for passengers 60+' },
+    DOCTORS_NURSES: { name: 'Doctors & Nurses', description: 'Healthcare professional fares' },
+  },
+  isLoadingFareTypes: false,
+
   // Actions
   setSearchParams: (params) => set({ searchParams: params }),
 
@@ -175,6 +186,43 @@ const useFlightStore = create((set, get) => ({
       set({ sectors: response.data || response || [] });
     } catch (error) {
       console.error('Failed to load sectors:', error);
+    }
+  },
+
+  loadFareTypes: async () => {
+    set({ isLoadingFareTypes: true });
+    try {
+      const response = await flightApi.getFareTypes();
+      const fareTypes = response.data || response || [];
+      set({
+        availableFareTypes: fareTypes,
+        isLoadingFareTypes: false
+      });
+    } catch (error) {
+      console.error('Failed to load fare types:', error);
+      // Set default fare types on error
+      set({
+        availableFareTypes: [
+          { code: 'REGULAR', name: 'Regular', description: 'Standard fares' },
+          { code: 'ARMED_FORCES', name: 'Armed Forces', description: 'Defense personnel fares' },
+          { code: 'STUDENT', name: 'Student', description: 'Student fares' },
+          { code: 'SENIOR_CITIZEN', name: 'Senior Citizen', description: 'Senior citizen fares' },
+        ],
+        isLoadingFareTypes: false
+      });
+    }
+  },
+
+  swapCities: () => {
+    const { searchParams } = get();
+    if (searchParams) {
+      set({
+        searchParams: {
+          ...searchParams,
+          origin: searchParams.destination,
+          destination: searchParams.origin,
+        }
+      });
     }
   },
 

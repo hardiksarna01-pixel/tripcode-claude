@@ -960,17 +960,159 @@ async function hashPassword(password) {
     return await bcrypt.hash(password, 10);
 }
 
-// Mock services (implement with actual database queries)
-const groupService = { findAll: async () => [], create: async (d) => d, update: async (i, d) => d };
-const schemeService = { findAll: async () => [], create: async (d) => d, update: async (i, d) => d, getApiConfigs: async () => [], setApiConfigs: async () => {}, getAirlineRules: async () => [], setAirlineRules: async () => {} };
-const apiProviderService = { findAll: async () => [], create: async (d) => d, update: async (i, d) => d, getAirlines: async () => [], setAirlines: async () => {}, getFareCommissions: async () => [] };
-const agentService = { findAll: async () => [], findById: async () => null, findByGroup: async () => [], create: async (d) => d, update: async (i, d) => d, updateStatus: async () => {}, assignToGroup: async () => {}, generateAgentCode: async () => 'AGT' + Date.now(), resetPassword: async () => {}, logGroupChange: async () => {} };
-const signupRequestService = { findAll: async () => [], findById: async () => null, update: async (i, d) => d };
-const taxConfigService = { findAll: async () => [], create: async (d) => d };
-const walletService = { getAgentWallet: async () => ({}), credit: async (d) => d, debit: async (d) => d };
-const bookingService = { findAll: async () => [], findById: async () => null };
-const reportService = { getDashboardStats: async () => ({}), getBookingReport: async () => ({}), getRevenueReport: async () => ({}) };
-const notificationService = { sendAgentCredentials: async () => {}, sendStatusChangeNotification: async () => {}, sendPasswordResetEmail: async () => {}, sendPasswordResetWhatsApp: async () => {}, sendWelcomeMessage: async () => {}, sendRejectionNotification: async () => {} };
+// Database-backed services
+const db = require('../config/database');
+
+const groupService = {
+    findAll: async () => db.findAll('groups'),
+    create: async (d) => { db.insert('groups', d.id || Date.now().toString(), d); return d; },
+    update: async (id, d) => db.update('groups', id, d)
+};
+
+const schemeService = {
+    findAll: async () => db.findAll('schemes'),
+    create: async (d) => { db.insert('schemes', d.id || Date.now().toString(), d); return d; },
+    update: async (id, d) => db.update('schemes', id, d),
+    getApiConfigs: async () => [],
+    setApiConfigs: async () => {},
+    getAirlineRules: async () => [],
+    setAirlineRules: async () => {}
+};
+
+const apiProviderService = {
+    findAll: async () => [
+        { id: '1', name: 'TBO', code: 'TBO', type: 'GDS', isActive: true, airlines: ['6E', 'AI', 'SG'] },
+        { id: '2', name: 'Amadeus', code: 'AMA', type: 'GDS', isActive: true, airlines: ['EK', 'SQ', 'TG'] },
+    ],
+    create: async (d) => d,
+    update: async (id, d) => d,
+    getAirlines: async () => db.findAll('airlines'),
+    setAirlines: async () => {},
+    getFareCommissions: async () => []
+};
+
+const agentService = {
+    findAll: async ({ search, status } = {}) => {
+        let agents = db.findAll('agents');
+        if (status) agents = agents.filter(a => a.status === status);
+        if (search) agents = agents.filter(a =>
+            a.email?.includes(search) || a.companyName?.includes(search)
+        );
+        return { agents, total: agents.length, page: 1, limit: 20 };
+    },
+    findById: async (id) => {
+        const agents = db.getTable('agents');
+        return Array.from(agents.values()).find(a => a.id === id) || null;
+    },
+    findByGroup: async () => db.findAll('agents'),
+    create: async (d) => { db.insert('agents', d.email, d); return d; },
+    update: async (id, d) => {
+        const agents = db.getTable('agents');
+        const agent = Array.from(agents.values()).find(a => a.id === id);
+        if (agent) {
+            const updated = { ...agent, ...d };
+            agents.set(agent.email, updated);
+            return updated;
+        }
+        return null;
+    },
+    updateStatus: async (id, { status }) => {
+        const agents = db.getTable('agents');
+        const agent = Array.from(agents.values()).find(a => a.id === id);
+        if (agent) {
+            agent.status = status;
+            agents.set(agent.email, agent);
+            return agent;
+        }
+        return null;
+    },
+    assignToGroup: async () => {},
+    generateAgentCode: async () => 'AGT' + Date.now(),
+    resetPassword: async () => {},
+    logGroupChange: async () => {}
+};
+
+const signupRequestService = {
+    findAll: async () => {
+        const agents = db.findAll('agents').filter(a => a.status === 'PENDING');
+        return { requests: agents, total: agents.length };
+    },
+    findById: async (id) => db.findAll('agents').find(a => a.id === id && a.status === 'PENDING'),
+    update: async (id, d) => d
+};
+
+const taxConfigService = {
+    findAll: async () => [
+        { id: '1', name: 'GST', rate: 18, isActive: true },
+        { id: '2', name: 'TDS', rate: 5, isActive: true }
+    ],
+    create: async (d) => d
+};
+
+const walletService = {
+    getAgentWallet: async (agentId) => {
+        const agent = await agentService.findById(agentId);
+        return { balance: agent?.walletBalance || 0, creditLimit: agent?.creditLimit || 0 };
+    },
+    credit: async (d) => d,
+    debit: async (d) => d
+};
+
+const bookingService = {
+    findAll: async ({ agentId, status } = {}) => {
+        let bookings = db.findAll('bookings');
+        if (agentId) bookings = bookings.filter(b => b.agentId === agentId);
+        if (status) bookings = bookings.filter(b => b.status === status);
+        return { bookings, total: bookings.length };
+    },
+    findById: async (id) => db.findById('bookings', id)
+};
+
+const reportService = {
+    getDashboardStats: async () => {
+        const bookings = db.findAll('bookings');
+        const agents = db.findAll('agents');
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+        const todayBookings = bookings.filter(b => new Date(b.createdAt) >= today);
+        const monthBookings = bookings.filter(b => new Date(b.createdAt) >= thisMonth);
+
+        return {
+            totalAgents: agents.length,
+            activeAgents: agents.filter(a => a.status === 'APPROVED').length,
+            pendingAgents: agents.filter(a => a.status === 'PENDING').length,
+            totalBookings: bookings.length,
+            todayBookings: todayBookings.length,
+            monthBookings: monthBookings.length,
+            confirmedBookings: bookings.filter(b => b.status === 'CONFIRMED').length,
+            cancelledBookings: bookings.filter(b => b.status === 'CANCELLED').length,
+            totalRevenue: bookings.reduce((sum, b) => sum + (b.totalAmount || 0), 0),
+            todayRevenue: todayBookings.reduce((sum, b) => sum + (b.totalAmount || 0), 0),
+            monthRevenue: monthBookings.reduce((sum, b) => sum + (b.totalAmount || 0), 0),
+            recentBookings: bookings.slice(-10).reverse()
+        };
+    },
+    getBookingReport: async () => ({ data: db.findAll('bookings') }),
+    getRevenueReport: async () => {
+        const bookings = db.findAll('bookings');
+        return {
+            totalRevenue: bookings.reduce((sum, b) => sum + (b.totalAmount || 0), 0),
+            totalCommission: bookings.reduce((sum, b) => sum + (b.commission || 0), 0)
+        };
+    }
+};
+
+const notificationService = {
+    sendAgentCredentials: async () => {},
+    sendStatusChangeNotification: async () => {},
+    sendPasswordResetEmail: async () => {},
+    sendPasswordResetWhatsApp: async () => {},
+    sendWelcomeMessage: async () => {},
+    sendRejectionNotification: async () => {}
+};
+
 const auditService = { log: async () => {} };
 
 module.exports = router;
