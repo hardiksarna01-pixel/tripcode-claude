@@ -3,6 +3,8 @@
  * Replaces PostgreSQL with in-memory storage for development without database
  */
 
+const bcrypt = require('bcryptjs');
+
 class InMemoryDatabase {
     constructor() {
         this.tables = new Map();
@@ -26,9 +28,58 @@ class InMemoryDatabase {
         this.tables.set('airports', new Map());
         this.tables.set('schemes', new Map());
 
+        // Seed default users
+        await this.seedDefaultUsers();
+
         this.connected = true;
         console.log('✅ In-memory database initialized successfully');
         return this;
+    }
+
+    /**
+     * Seed default admin and agent users for demo
+     */
+    async seedDefaultUsers() {
+        // Hash passwords
+        const adminPasswordHash = await bcrypt.hash('admin123', 10);
+        const agentPasswordHash = await bcrypt.hash('agent123', 10);
+
+        // Seed admin user
+        const admins = this.getTable('admins');
+        admins.set('admin@flyshop.com', {
+            id: '1',
+            email: 'admin@flyshop.com',
+            password: adminPasswordHash,
+            username: 'superadmin',
+            fullName: 'Admin User',
+            role: 'SUPER_ADMIN',
+            permissions: ['*'],
+            isActive: true,
+            createdAt: new Date()
+        });
+
+        // Seed demo agent user
+        const agents = this.getTable('agents');
+        agents.set('agent@flyshop.com', {
+            id: '1001',
+            email: 'agent@flyshop.com',
+            password: agentPasswordHash,
+            companyName: 'Demo Travel Agency',
+            contactPerson: 'Demo Agent',
+            mobile: '9876543210',
+            role: 'AGENT',
+            status: 'APPROVED',
+            apiUserId: 'DEMO_API_USER',
+            apiPasswordHash: 'DEMO_API_HASH',
+            walletBalance: 50000,
+            creditLimit: 100000,
+            isActive: true,
+            createdAt: new Date()
+        });
+
+        console.log('✅ Seeded default users:');
+        console.log('   Admin: admin@flyshop.com / admin123');
+        console.log('   Agent: agent@flyshop.com / agent123');
     }
 
     /**

@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const db = require('../config/database');
 
 /**
  * Authentication middleware
@@ -8,7 +9,7 @@ exports.authMiddleware = async (req, res, next) => {
     try {
         // Get token from header
         const authHeader = req.headers.authorization;
-        
+
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
             return res.status(401).json({
                 success: false,
@@ -24,14 +25,21 @@ exports.authMiddleware = async (req, res, next) => {
             process.env.JWT_SECRET || 'your-secret-key'
         );
 
-        // Get agent from mock store (in production, from database)
-        const { mockAgents } = require('../routes/auth.routes');
-        const agent = mockAgents.get(decoded.email);
+        // Get agent from database
+        const agents = db.getTable('agents');
+        const agent = agents.get(decoded.email);
 
         if (!agent) {
             return res.status(401).json({
                 success: false,
                 error: 'Agent not found'
+            });
+        }
+
+        if (!agent.isActive) {
+            return res.status(401).json({
+                success: false,
+                error: 'Account is inactive'
             });
         }
 

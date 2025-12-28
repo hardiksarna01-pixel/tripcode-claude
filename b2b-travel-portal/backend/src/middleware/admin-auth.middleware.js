@@ -1,19 +1,6 @@
 const jwt = require('jsonwebtoken');
-
-// Mock admin store (replace with database in production)
-const adminUsers = new Map();
-
-// Add default super admin
-adminUsers.set('admin@flyshop.com', {
-    id: 1,
-    username: 'superadmin',
-    email: 'admin@flyshop.com',
-    passwordHash: '$2a$10$Yoi0GnT3Kh7fQ51m56JyTuqwFP9EN0s.TogvsDX/zkLAuaPHaJibq', // Hash of 'admin123'
-    fullName: 'Super Admin',
-    role: 'SUPER_ADMIN',
-    permissions: ['*'], // All permissions
-    isActive: true
-});
+const bcrypt = require('bcryptjs');
+const db = require('../config/database');
 
 /**
  * Admin authentication middleware
@@ -21,7 +8,7 @@ adminUsers.set('admin@flyshop.com', {
 exports.adminAuth = async (req, res, next) => {
     try {
         const authHeader = req.headers.authorization;
-        
+
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
             return res.status(401).json({
                 success: false,
@@ -44,8 +31,9 @@ exports.adminAuth = async (req, res, next) => {
             });
         }
 
-        // Get admin from database (mock for now)
-        const admin = adminUsers.get(decoded.email);
+        // Get admin from database
+        const admins = db.getTable('admins');
+        const admin = admins.get(decoded.email);
 
         if (!admin || !admin.isActive) {
             return res.status(401).json({
@@ -108,15 +96,14 @@ exports.checkPermission = (requiredPermission) => {
  * Admin login
  */
 exports.adminLogin = async (email, password) => {
-    const bcrypt = require('bcryptjs');
-    
-    const admin = adminUsers.get(email);
-    
+    const admins = db.getTable('admins');
+    const admin = admins.get(email);
+
     if (!admin) {
         throw new Error('Invalid credentials');
     }
 
-    const isMatch = await bcrypt.compare(password, admin.passwordHash);
+    const isMatch = await bcrypt.compare(password, admin.password);
     if (!isMatch) {
         throw new Error('Invalid credentials');
     }
@@ -127,9 +114,9 @@ exports.adminLogin = async (email, password) => {
 
     // Generate admin JWT
     const token = jwt.sign(
-        { 
-            id: admin.id, 
-            email: admin.email, 
+        {
+            id: admin.id,
+            email: admin.email,
             role: admin.role,
             type: 'admin'
         },
@@ -148,6 +135,3 @@ exports.adminLogin = async (email, password) => {
         }
     };
 };
-
-// Export admin store for registration
-exports.adminUsers = adminUsers;
