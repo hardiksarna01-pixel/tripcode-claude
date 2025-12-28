@@ -172,7 +172,8 @@ const Layout = ({ children }) => {
         }
     ];
 
-    const menuItems = isAdmin ? [...agentMenuItems, ...adminMenuItems] : agentMenuItems;
+    // Admins see admin menu only, agents see agent menu only
+    const menuItems = isAdmin ? adminMenuItems : agentMenuItems;
 
     const handleLogout = () => {
         logout();
