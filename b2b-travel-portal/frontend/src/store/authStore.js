@@ -16,12 +16,13 @@ export const useAuthStore = create(
         set({ isLoading: true, error: null });
         try {
           const response = await authApi.login(email, password);
-          const { token, admin } = response.data || response;
+          const data = response.data || response;
+          const { token, user } = data;
 
           localStorage.setItem('authToken', token);
 
           set({
-            user: admin || response.agent,
+            user: user || data.admin,
             token,
             isAuthenticated: true,
             isLoading: false,
