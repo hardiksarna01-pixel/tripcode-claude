@@ -7,7 +7,7 @@ import { useAuthStore } from '../../store/authStore';
  */
 const LoginPage = () => {
     const navigate = useNavigate();
-    const { login, isLoading, error, isAuthenticated, clearError } = useAuthStore();
+    const { login, isLoading, error, isAuthenticated, user, clearError } = useAuthStore();
 
     const [formData, setFormData] = useState({
         email: '',
@@ -16,10 +16,15 @@ const LoginPage = () => {
     const [showPassword, setShowPassword] = useState(false);
 
     useEffect(() => {
-        if (isAuthenticated) {
-            navigate('/dashboard');
+        if (isAuthenticated && user) {
+            // Redirect based on user role
+            if (user.role === 'SUPER_ADMIN' || user.role === 'ADMIN' || user.permissions?.length > 0) {
+                navigate('/admin/dashboard');
+            } else {
+                navigate('/dashboard');
+            }
         }
-    }, [isAuthenticated, navigate]);
+    }, [isAuthenticated, user, navigate]);
 
     useEffect(() => {
         return () => clearError();
@@ -34,7 +39,15 @@ const LoginPage = () => {
         e.preventDefault();
         const result = await login(formData.email, formData.password);
         if (result.success) {
-            navigate('/dashboard');
+            // Navigation will be handled by the useEffect above
+        }
+    };
+
+    const fillDemoCredentials = (type) => {
+        if (type === 'admin') {
+            setFormData({ email: 'admin@flyshop.com', password: 'admin123' });
+        } else {
+            setFormData({ email: 'agent@flyshop.com', password: 'agent123' });
         }
     };
 
@@ -50,7 +63,7 @@ const LoginPage = () => {
                 {/* Login Form */}
                 <div className="bg-white rounded-xl shadow-2xl p-8">
                     <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-                        Agent Login
+                        Sign In
                     </h2>
 
                     {error && (
@@ -70,7 +83,7 @@ const LoginPage = () => {
                                 value={formData.email}
                                 onChange={handleChange}
                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                                placeholder="agent@example.com"
+                                placeholder="Enter your email"
                                 required
                             />
                         </div>
@@ -127,6 +140,29 @@ const LoginPage = () => {
                             )}
                         </button>
                     </form>
+
+                    {/* Demo Credentials */}
+                    <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                        <p className="text-xs text-gray-500 text-center mb-3 font-medium">Demo Credentials (click to fill)</p>
+                        <div className="grid grid-cols-2 gap-3">
+                            <button
+                                type="button"
+                                onClick={() => fillDemoCredentials('admin')}
+                                className="p-2 bg-purple-100 text-purple-700 rounded-lg text-xs hover:bg-purple-200 transition"
+                            >
+                                <span className="font-semibold block">Admin</span>
+                                <span className="text-purple-500">admin@flyshop.com</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => fillDemoCredentials('agent')}
+                                className="p-2 bg-blue-100 text-blue-700 rounded-lg text-xs hover:bg-blue-200 transition"
+                            >
+                                <span className="font-semibold block">Agent</span>
+                                <span className="text-blue-500">agent@flyshop.com</span>
+                            </button>
+                        </div>
+                    </div>
 
                     <div className="mt-6 text-center">
                         <p className="text-gray-600">

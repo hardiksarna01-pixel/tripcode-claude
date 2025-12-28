@@ -129,8 +129,11 @@ const App = () => {
 
                 {/* Finance */}
                 <Route path="/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
+                <Route path="/payments" element={<ProtectedRoute><PlaceholderPage title="Payment History" description="View all payment transactions and gateway records" /></ProtectedRoute>} />
                 <Route path="/markups" element={<ProtectedRoute><MarkupManagement /></ProtectedRoute>} />
                 <Route path="/invoices" element={<ProtectedRoute><InvoiceManagement /></ProtectedRoute>} />
+                <Route path="/tds" element={<ProtectedRoute><PlaceholderPage title="TDS Management" description="Track TDS deductions and generate TDS certificates" /></ProtectedRoute>} />
+                <Route path="/ledger" element={<ProtectedRoute><PlaceholderPage title="Account Ledger" description="Complete financial ledger with all transactions" /></ProtectedRoute>} />
                 <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
 
                 {/* AI Tools */}
@@ -163,6 +166,8 @@ const App = () => {
                 <Route path="/admin/api-providers" element={<ProtectedRoute><ApiProviderManagement /></ProtectedRoute>} />
                 <Route path="/admin/hotel-suppliers" element={<ProtectedRoute><PlaceholderPage title="Hotel Suppliers" description="Manage hotel API integrations" /></ProtectedRoute>} />
                 <Route path="/admin/bus-suppliers" element={<ProtectedRoute><PlaceholderPage title="Bus Suppliers" description="Manage bus API integrations" /></ProtectedRoute>} />
+                <Route path="/admin/insurance-suppliers" element={<ProtectedRoute><PlaceholderPage title="Insurance Providers" description="Manage insurance API integrations (ICICI Lombard, HDFC Ergo, Bajaj Allianz, Tata AIG)" /></ProtectedRoute>} />
+                <Route path="/admin/payment-gateways" element={<ProtectedRoute><PlaceholderPage title="Payment Gateways" description="Configure payment gateway integrations (Razorpay, PayU, CCAvenue, Paytm, PhonePe)" /></ProtectedRoute>} />
 
                 {/* White Label */}
                 <Route path="/admin/white-label" element={<ProtectedRoute><WhiteLabelSettings /></ProtectedRoute>} />
