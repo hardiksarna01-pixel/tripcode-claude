@@ -9,7 +9,9 @@ const Layout = ({ children }) => {
     const navigate = useNavigate();
     const { user, logout } = useAuthStore();
 
-    const isAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN';
+    // Check if user is admin - by role, permissions array, or admin email pattern
+    const isAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN' ||
+                    user?.permissions?.length > 0 || user?.email === 'admin@flyshop.com';
 
     const toggleSection = (category) => {
         setExpandedSections(prev =>
