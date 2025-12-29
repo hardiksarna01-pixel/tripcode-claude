@@ -68,6 +68,21 @@ import AdminInsurance from './pages/admin/Insurance';
 import AdminPromoCodes from './pages/admin/PromoCodes';
 import AdminEmailTemplates from './pages/admin/EmailTemplates';
 import AdminPaymentGateway from './pages/admin/PaymentGateway';
+import AdminCertificationManagement from './pages/admin/CertificationManagement';
+import AdminCourseBuilder from './pages/admin/CourseBuilder';
+import AdminQuestionBank from './pages/admin/QuestionBank';
+import AdminCertificateTemplates from './pages/admin/CertificateTemplates';
+import AdminCertificationRevenue from './pages/admin/CertificationRevenue';
+
+// Certification Pages (Agent/Public)
+import CertificationHub from './pages/certification/CertificationHub';
+import MyCourses from './pages/certification/MyCourses';
+import CoursesCatalog from './pages/certification/CoursesCatalog';
+import CourseDetails from './pages/certification/CourseDetails';
+import CoursePlayer from './pages/certification/CoursePlayer';
+import ExamPortal from './pages/certification/ExamPortal';
+import MyCertificates from './pages/certification/MyCertificates';
+import MembershipApplication from './pages/certification/MembershipApplication';
 
 // Super Admin Pages
 import SuperAdminDashboard from './pages/superadmin/Dashboard';
@@ -142,6 +157,12 @@ function App() {
                                 <Route path="/flights" element={<FlightSearch />} />
                                 <Route path="/flights/results" element={<FlightResults />} />
                                 <Route path="/flights/book" element={<FlightBooking />} />
+
+                                {/* Certification & Training Hub (Public) */}
+                                <Route path="/certifications" element={<CertificationHub />} />
+                                <Route path="/certifications/courses" element={<CoursesCatalog />} />
+                                <Route path="/certifications/courses/:id" element={<CourseDetails />} />
+                                <Route path="/certifications/membership/:associationCode" element={<MembershipApplication />} />
                             </Route>
 
                             {/* Agent Portal Routes */}
@@ -159,6 +180,16 @@ function App() {
                                 <Route path="reports" element={<AgentReports />} />
                                 <Route path="commissions" element={<AgentCommissions />} />
                                 <Route path="profile" element={<AgentProfile />} />
+
+                                {/* Agent Certification Routes */}
+                                <Route path="certifications" element={<CertificationHub />} />
+                                <Route path="certifications/my-courses" element={<MyCourses />} />
+                                <Route path="certifications/courses" element={<CoursesCatalog />} />
+                                <Route path="certifications/courses/:id" element={<CourseDetails />} />
+                                <Route path="certifications/learn/:enrollmentId" element={<CoursePlayer />} />
+                                <Route path="certifications/exam/:examId" element={<ExamPortal />} />
+                                <Route path="certifications/my-certificates" element={<MyCertificates />} />
+                                <Route path="certifications/membership/:associationCode" element={<MembershipApplication />} />
                             </Route>
 
                             {/* Customer Routes */}
@@ -209,6 +240,15 @@ function App() {
                                 <Route path="promo-codes" element={<AdminPromoCodes />} />
                                 <Route path="email-templates" element={<AdminEmailTemplates />} />
                                 <Route path="payment-gateway" element={<AdminPaymentGateway />} />
+
+                                {/* Certification Management */}
+                                <Route path="certifications" element={<AdminCertificationManagement />} />
+                                <Route path="certifications/courses" element={<AdminCourseBuilder />} />
+                                <Route path="certifications/courses/new" element={<AdminCourseBuilder />} />
+                                <Route path="certifications/courses/:id/edit" element={<AdminCourseBuilder />} />
+                                <Route path="certifications/questions" element={<AdminQuestionBank />} />
+                                <Route path="certifications/templates" element={<AdminCertificateTemplates />} />
+                                <Route path="certifications/revenue" element={<AdminCertificationRevenue />} />
                             </Route>
 
                             {/* Super Admin Routes */}
