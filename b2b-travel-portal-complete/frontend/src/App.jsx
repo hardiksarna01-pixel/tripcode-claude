@@ -29,6 +29,39 @@ import FlightSearch from './pages/flights/FlightSearch';
 import FlightResults from './pages/flights/FlightResults';
 import FlightBooking from './pages/flights/FlightBooking';
 
+// Hotel Pages
+import HotelSearch from './pages/hotels/HotelSearch';
+import HotelResults from './pages/hotels/HotelResults';
+import HotelBooking from './pages/hotels/HotelBooking';
+
+// Bus Pages
+import BusSearch from './pages/bus/BusSearch';
+import BusResults from './pages/bus/BusResults';
+import BusSeatSelection from './pages/bus/BusSeatSelection';
+
+// Holiday Packages
+import HolidayPackages from './pages/holidays/HolidayPackages';
+
+// Visa Pages
+import VisaApplication from './pages/visa/VisaApplication';
+
+// Insurance Pages
+import InsuranceSearch from './pages/insurance/InsuranceSearch';
+
+// Forex Pages
+import ForexServices from './pages/forex/ForexServices';
+
+// Finance Pages
+import GSTTDSCalculation from './pages/finance/GSTTDSCalculation';
+
+// Payment Pages
+import PaymentGatewayPage from './pages/payment/PaymentGateway';
+
+// AI Tools
+import AIChatbot from './pages/ai/AIChatbot';
+import AIImageGenerator from './pages/ai/AIImageGenerator';
+import AITripPlanner from './pages/ai/AITripPlanner';
+
 // Agent Portal Pages
 import AgentDashboard from './pages/agent/Dashboard';
 import AgentBookings from './pages/agent/Bookings';
@@ -158,6 +191,39 @@ function App() {
                                 <Route path="/flights/results" element={<FlightResults />} />
                                 <Route path="/flights/book" element={<FlightBooking />} />
 
+                                {/* Hotels */}
+                                <Route path="/hotels" element={<HotelSearch />} />
+                                <Route path="/hotels/results" element={<HotelResults />} />
+                                <Route path="/hotels/book" element={<HotelBooking />} />
+
+                                {/* Buses */}
+                                <Route path="/buses" element={<BusSearch />} />
+                                <Route path="/buses/results" element={<BusResults />} />
+                                <Route path="/buses/seats" element={<BusSeatSelection />} />
+
+                                {/* Holiday Packages */}
+                                <Route path="/holidays" element={<HolidayPackages />} />
+                                <Route path="/holidays/:id" element={<HolidayPackages />} />
+
+                                {/* Visa Services */}
+                                <Route path="/visa" element={<VisaApplication />} />
+                                <Route path="/visa/:country" element={<VisaApplication />} />
+
+                                {/* Insurance */}
+                                <Route path="/insurance" element={<InsuranceSearch />} />
+
+                                {/* Forex Services */}
+                                <Route path="/forex" element={<ForexServices />} />
+
+                                {/* AI Tools */}
+                                <Route path="/ai/chatbot" element={<AIChatbot />} />
+                                <Route path="/ai/trip-planner" element={<AITripPlanner />} />
+                                <Route path="/ai/image-generator" element={<AIImageGenerator />} />
+
+                                {/* Payment */}
+                                <Route path="/payment" element={<PaymentGatewayPage />} />
+                                <Route path="/payment/:bookingId" element={<PaymentGatewayPage />} />
+
                                 {/* Certification & Training Hub (Public) */}
                                 <Route path="/certifications" element={<CertificationHub />} />
                                 <Route path="/certifications/courses" element={<CoursesCatalog />} />
@@ -180,6 +246,27 @@ function App() {
                                 <Route path="reports" element={<AgentReports />} />
                                 <Route path="commissions" element={<AgentCommissions />} />
                                 <Route path="profile" element={<AgentProfile />} />
+
+                                {/* Agent Booking Routes */}
+                                <Route path="flights" element={<FlightSearch />} />
+                                <Route path="flights/results" element={<FlightResults />} />
+                                <Route path="flights/book" element={<FlightBooking />} />
+                                <Route path="hotels" element={<HotelSearch />} />
+                                <Route path="hotels/results" element={<HotelResults />} />
+                                <Route path="hotels/book" element={<HotelBooking />} />
+                                <Route path="buses" element={<BusSearch />} />
+                                <Route path="buses/results" element={<BusResults />} />
+                                <Route path="buses/seats" element={<BusSeatSelection />} />
+                                <Route path="holidays" element={<HolidayPackages />} />
+                                <Route path="visa" element={<VisaApplication />} />
+                                <Route path="insurance" element={<InsuranceSearch />} />
+                                <Route path="forex" element={<ForexServices />} />
+                                <Route path="gst-tds" element={<GSTTDSCalculation />} />
+
+                                {/* Agent AI Tools */}
+                                <Route path="ai/chatbot" element={<AIChatbot />} />
+                                <Route path="ai/trip-planner" element={<AITripPlanner />} />
+                                <Route path="ai/image-generator" element={<AIImageGenerator />} />
 
                                 {/* Agent Certification Routes */}
                                 <Route path="certifications" element={<CertificationHub />} />
