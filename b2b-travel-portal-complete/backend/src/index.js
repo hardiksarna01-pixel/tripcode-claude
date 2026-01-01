@@ -72,6 +72,9 @@ app.use(`${apiPrefix}/transfers`, require('./routes/transfer.routes'));
 
 // Booking Routes
 app.use(`${apiPrefix}/bookings`, require('./routes/booking.routes'));
+app.use(`${apiPrefix}/bookings/history`, require('./routes/booking-history.routes'));
+app.use(`${apiPrefix}/bookings/amendments`, require('./routes/amendment.routes'));
+app.use(`${apiPrefix}/bookings/group`, require('./routes/group-booking.routes'));
 
 // Wallet & Payment Routes
 app.use(`${apiPrefix}/wallet`, require('./routes/wallet.routes'));
@@ -91,9 +94,13 @@ app.use(`${apiPrefix}/admin/settings`, require('./routes/admin/settings.routes')
 app.use(`${apiPrefix}/admin/whitelabel`, require('./routes/admin/whitelabel.routes'));
 app.use(`${apiPrefix}/admin/templates`, require('./routes/admin/template.routes'));
 app.use(`${apiPrefix}/admin/api-keys`, require('./routes/admin/api-key.routes'));
+app.use(`${apiPrefix}/admin/commissions`, require('./routes/admin/commission.routes'));
 
 // Super Admin Routes
 app.use(`${apiPrefix}/superadmin`, require('./routes/superadmin.routes'));
+
+// Certification & LMS Routes
+app.use(`${apiPrefix}/certifications`, require('./routes/certification.routes'));
 
 // AI Features
 app.use(`${apiPrefix}/ai`, require('./routes/ai.routes'));
