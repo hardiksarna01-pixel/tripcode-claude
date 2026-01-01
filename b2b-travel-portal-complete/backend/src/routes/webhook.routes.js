@@ -1,6 +1,5 @@
 /**
  * Webhook Routes
- * External service webhooks
  */
 
 const express = require('express');
@@ -8,22 +7,18 @@ const router = express.Router();
 const webhookController = require('../controllers/webhook.controller');
 
 // Payment webhooks
-router.post('/razorpay', express.raw({ type: 'application/json' }), webhookController.razorpay);
-router.post('/stripe', express.raw({ type: 'application/json' }), webhookController.stripe);
-router.post('/payu', webhookController.payu);
+router.post('/payment', webhookController.handlePaymentWebhook);
 
 // Supplier webhooks
-router.post('/amadeus', webhookController.amadeus);
-router.post('/tbo', webhookController.tbo);
-router.post('/hotelbeds', webhookController.hotelbeds);
+router.post('/supplier', webhookController.handleSupplierWebhook);
 
-// SMS/Communication webhooks
-router.post('/twilio', webhookController.twilio);
-router.post('/msg91', webhookController.msg91);
-router.post('/whatsapp', webhookController.whatsapp);
+// Insurance webhooks
+router.post('/insurance', webhookController.handleInsuranceWebhook);
 
-// Booking updates
-router.post('/booking-update', webhookController.bookingUpdate);
-router.post('/schedule-change', webhookController.scheduleChange);
+// SMS webhooks
+router.post('/sms', webhookController.handleSMSWebhook);
+
+// Email webhooks
+router.post('/email', webhookController.handleEmailWebhook);
 
 module.exports = router;

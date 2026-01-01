@@ -212,5 +212,8 @@ module.exports = {
     requireAgent,
     requireCustomer,
     optionalAuth,
-    authenticateApiKey
+    authenticateApiKey,
+    // Aliases for backward compatibility
+    authMiddleware: authenticate,
+    adminAuthMiddleware: authenticateAdmin
 };

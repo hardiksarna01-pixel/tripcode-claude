@@ -231,7 +231,7 @@ const AgentBookings = () => {
     };
 
     const handleCancelBooking = async (bookingId) => {
-        if (!confirm('Are you sure you want to cancel this booking?')) return;
+        if (!window.confirm('Are you sure you want to cancel this booking?')) return;
 
         try {
             await api.post(`/bookings/${bookingId}/cancel`);

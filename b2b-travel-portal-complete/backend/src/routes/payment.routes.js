@@ -1,6 +1,5 @@
 /**
  * Payment Routes
- * Payment processing for B2C bookings
  */
 
 const express = require('express');
@@ -8,24 +7,21 @@ const router = express.Router();
 const paymentController = require('../controllers/payment.controller');
 const { authenticate, optionalAuth } = require('../middleware/auth.middleware');
 
-// Payment gateways
-router.get('/gateways', paymentController.getAvailableGateways);
+// Payment methods
+router.get('/methods', paymentController.getPaymentMethods);
 
-// Create order
-router.post('/create-order', authenticate, paymentController.createOrder);
-
-// Gateway-specific callbacks
-router.post('/razorpay/verify', paymentController.verifyRazorpay);
-router.post('/payu/success', paymentController.payuSuccess);
-router.post('/payu/failure', paymentController.payuFailure);
-router.post('/stripe/verify', paymentController.verifyStripe);
-router.post('/ccavenue/response', paymentController.ccavenueResponse);
+// Create payment
+router.post('/initiate', authenticate, paymentController.initiatePayment);
+router.post('/verify', paymentController.verifyPayment);
 
 // Payment status
-router.get('/status/:orderId', optionalAuth, paymentController.getPaymentStatus);
+router.get('/status/:paymentId', optionalAuth, paymentController.getPaymentStatus);
 
 // Refunds
-router.post('/refund/:paymentId', authenticate, paymentController.initiateRefund);
-router.get('/refund/:refundId/status', authenticate, paymentController.getRefundStatus);
+router.post('/refund', authenticate, paymentController.initiateRefund);
+router.get('/refund/:refundId', authenticate, paymentController.getRefundStatus);
+
+// Payment links
+router.post('/create-link', authenticate, paymentController.createPaymentLink);
 
 module.exports = router;

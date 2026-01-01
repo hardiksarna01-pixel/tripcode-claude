@@ -1,42 +1,27 @@
 /**
  * Public Routes
- * Public APIs that don't require authentication
  */
 
 const express = require('express');
 const router = express.Router();
 const publicController = require('../controllers/public.controller');
 
-// Static data
-router.get('/countries', publicController.getCountries);
-router.get('/states/:countryCode', publicController.getStates);
-router.get('/cities/:stateCode', publicController.getCities);
-router.get('/currencies', publicController.getCurrencies);
+// Home data
+router.get('/home', publicController.getHomeData);
 
-// Popular destinations
-router.get('/destinations/popular', publicController.getPopularDestinations);
-router.get('/destinations/trending', publicController.getTrendingDestinations);
-
-// Deals and offers
-router.get('/deals', publicController.getDeals);
+// Offers
 router.get('/offers', publicController.getOffers);
+router.post('/validate-coupon', publicController.validateCoupon);
 
-// Blog/Content
-router.get('/blog', publicController.getBlogPosts);
-router.get('/blog/:slug', publicController.getBlogPost);
+// Blog
+router.get('/blog', publicController.getBlog);
 
-// FAQs
-router.get('/faqs', publicController.getFAQs);
-router.get('/faqs/:category', publicController.getFAQsByCategory);
+// Testimonials
+router.get('/testimonials', publicController.getTestimonials);
 
 // Contact
+router.get('/contact', publicController.getContactInfo);
 router.post('/contact', publicController.submitContactForm);
-router.post('/newsletter/subscribe', publicController.subscribeNewsletter);
-
-// Reviews
-router.get('/reviews', publicController.getReviews);
-
-// B2B Application
-router.post('/agent-application', publicController.submitAgentApplication);
+router.post('/newsletter', publicController.subscribeNewsletter);
 
 module.exports = router;
