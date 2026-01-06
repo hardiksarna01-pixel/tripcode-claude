@@ -18,11 +18,17 @@ const AdminLoginPage = () => {
     setLoading(true);
     try {
       const response = await authAPI.adminLogin({ email, password });
-      login(response.data.user, response.data.token);
+      const { user, token } = response.data.data;
+      login(user, token);
       toast.success('Admin login successful!');
-      navigate('/admin/dashboard');
+      // Redirect based on role
+      if (user.role === 'SUPER_ADMIN') {
+        navigate('/superadmin/dashboard');
+      } else {
+        navigate('/admin/dashboard');
+      }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Login failed');
+      toast.error(error.response?.data?.error || 'Login failed');
     } finally {
       setLoading(false);
     }

@@ -18,11 +18,12 @@ const LoginPage = () => {
     setLoading(true);
     try {
       const response = await authAPI.login({ email, password });
-      login(response.data.user, response.data.token);
+      const { user, token } = response.data.data;
+      login(user, token);
       toast.success('Login successful!');
-      navigate('/dashboard');
+      navigate('/agent/dashboard');
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Login failed');
+      toast.error(error.response?.data?.error || 'Login failed');
     } finally {
       setLoading(false);
     }

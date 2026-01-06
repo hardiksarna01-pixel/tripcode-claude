@@ -8,6 +8,22 @@ const { catchAsync } = require('../utils/catchAsync');
 // In production, this would come from database
 const mockAgents = new Map();
 
+// Initialize test agent on module load
+(async () => {
+    const testAgentHash = await bcrypt.hash('agent123', 10);
+    mockAgents.set('agent@flyshop.com', {
+        id: '1',
+        email: 'agent@flyshop.com',
+        password: testAgentHash,
+        companyName: 'Demo Travel Agency',
+        mobile: '9876543210',
+        apiUserId: 'DEMO001',
+        apiPasswordHash: 'DEMO_HASH',
+        role: 'AGENT',
+        createdAt: new Date()
+    });
+})();
+
 /**
  * @route   POST /api/v1/auth/register
  * @desc    Register a new agent
@@ -124,13 +140,54 @@ router.post('/login', catchAsync(async (req, res) => {
         success: true,
         data: {
             token,
-            agent: {
+            user: {
                 id: agent.id,
                 email: agent.email,
-                companyName: agent.companyName
+                companyName: agent.companyName,
+                role: agent.role || 'AGENT',
+                type: 'agent'
             }
         }
     });
+}));
+
+/**
+ * @route   POST /api/v1/auth/admin/login
+ * @desc    Login admin/superadmin
+ * @access  Public
+ */
+router.post('/admin/login', catchAsync(async (req, res) => {
+    const { email, password } = req.body;
+
+    // Validate
+    if (!email || !password) {
+        return res.status(400).json({
+            success: false,
+            error: 'Please provide email and password'
+        });
+    }
+
+    try {
+        const { adminLogin } = require('../middleware/admin-auth.middleware');
+        const result = await adminLogin(email, password);
+
+        res.json({
+            success: true,
+            data: {
+                token: result.token,
+                user: {
+                    ...result.admin,
+                    role: result.admin.role,
+                    type: 'admin'
+                }
+            }
+        });
+    } catch (error) {
+        return res.status(401).json({
+            success: false,
+            error: error.message || 'Invalid credentials'
+        });
+    }
 }));
 
 /**

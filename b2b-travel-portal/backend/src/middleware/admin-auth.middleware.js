@@ -4,16 +4,25 @@ const jwt = require('jsonwebtoken');
 const adminUsers = new Map();
 
 // Add default super admin
+// Password: admin123 (bcrypt hash generated with cost factor 10)
 adminUsers.set('admin@flyshop.com', {
     id: 1,
     username: 'superadmin',
     email: 'admin@flyshop.com',
-    passwordHash: '$2a$10$...', // Hash of 'admin123'
+    passwordHash: '$2a$10$rQqy5wX8kXZ5Z5Z5Z5Z5ZOJ5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z', // Placeholder - will be set on first run
     fullName: 'Super Admin',
     role: 'SUPER_ADMIN',
     permissions: ['*'], // All permissions
     isActive: true
 });
+
+// Initialize password hash on module load
+const bcrypt = require('bcryptjs');
+(async () => {
+    const hash = await bcrypt.hash('admin123', 10);
+    const admin = adminUsers.get('admin@flyshop.com');
+    admin.passwordHash = hash;
+})();
 
 /**
  * Admin authentication middleware
