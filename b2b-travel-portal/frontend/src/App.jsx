@@ -99,21 +99,16 @@ function App() {
       <Toaster position="top-right" />
       <Routes>
         {/* ============================================
-            PUBLIC ROUTES - Login Pages
+            PUBLIC ROUTES - Login Pages (MUST BE FIRST)
         ============================================= */}
 
         {/* /login - AGENTS ONLY */}
-        <Route path="/login" element={
+        <Route path="login" element={
           isAuthenticated ? <Navigate to={getDefaultRoute()} replace /> : <LoginPage />
         } />
 
-        {/* /admin/login - ADMIN & SUPER ADMIN */}
-        <Route path="/admin/login" element={
-          isAuthenticated ? <Navigate to={getDefaultRoute()} replace /> : <AdminLoginPage />
-        } />
-
         {/* /register - New agent registration */}
-        <Route path="/register" element={
+        <Route path="register" element={
           isAuthenticated ? <Navigate to={getDefaultRoute()} replace /> : <RegisterPage />
         } />
 
@@ -121,7 +116,7 @@ function App() {
             AGENT PANEL (/agent/*) - 16 pages
             STRICTLY FOR AGENTS ONLY
         ============================================= */}
-        <Route path="/agent" element={
+        <Route path="agent" element={
           <AgentRoute>
             <AgentLayout />
           </AgentRoute>
@@ -144,16 +139,19 @@ function App() {
         </Route>
 
         {/* ============================================
-            ADMIN PANEL (/admin/*) - 33 pages
-            STRICTLY FOR ADMINS ONLY
+            ADMIN PANEL (/admin/*) - 33 pages + login
+            Login is public, rest requires ADMIN role
         ============================================= */}
-        <Route path="/admin" element={
-          <AdminRoute>
-            <AdminLayout />
-          </AdminRoute>
-        }>
-          <Route index element={<Navigate to="/admin/dashboard" replace />} />
-          <Route path="dashboard" element={<PlaceholderPage title="Admin Dashboard" />} />
+        <Route path="admin">
+          {/* Public: Admin Login */}
+          <Route path="login" element={
+            isAuthenticated ? <Navigate to={getDefaultRoute()} replace /> : <AdminLoginPage />
+          } />
+
+          {/* Protected Admin Routes */}
+          <Route element={<AdminRoute><AdminLayout /></AdminRoute>}>
+            <Route index element={<Navigate to="/admin/dashboard" replace />} />
+            <Route path="dashboard" element={<PlaceholderPage title="Admin Dashboard" />} />
           <Route path="agents" element={<PlaceholderPage title="Agents" />} />
           <Route path="bookings" element={<PlaceholderPage title="Bookings" />} />
           <Route path="finance" element={<PlaceholderPage title="Finance" />} />
@@ -183,13 +181,14 @@ function App() {
           <Route path="question-bank" element={<PlaceholderPage title="Question Bank" />} />
           <Route path="certificate-templates" element={<PlaceholderPage title="Certificate Templates" />} />
           <Route path="revenue-analytics" element={<PlaceholderPage title="Revenue Analytics" />} />
+          </Route>
         </Route>
 
         {/* ============================================
             SUPER ADMIN PANEL (/superadmin/*) - 14 pages
             STRICTLY FOR SUPER ADMINS ONLY
         ============================================= */}
-        <Route path="/superadmin" element={
+        <Route path="superadmin" element={
           <SuperAdminRoute>
             <SuperAdminLayout />
           </SuperAdminRoute>
@@ -219,7 +218,7 @@ function App() {
         <Route path="/" element={<Navigate to={getDefaultRoute()} replace />} />
 
         {/* Legacy /dashboard redirect to /agent/dashboard */}
-        <Route path="/dashboard" element={<Navigate to="/agent/dashboard" replace />} />
+        <Route path="dashboard" element={<Navigate to="/agent/dashboard" replace />} />
 
         {/* 404 */}
         <Route path="*" element={
