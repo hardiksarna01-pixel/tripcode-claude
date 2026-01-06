@@ -48,6 +48,8 @@ const AdminLayout = ({ isSuperAdmin = false }) => {
             title: 'Agent Management',
             items: [
                 { name: 'Agents', path: '/admin/agents', icon: UsersIcon },
+                { name: 'Groups', path: '/admin/groups', icon: UserGroupIcon },
+                { name: 'Schemes', path: '/admin/schemes', icon: TagIcon },
                 { name: 'Credit Management', path: '/admin/credit', icon: BanknotesIcon },
                 { name: 'Customers', path: '/admin/customers', icon: UserGroupIcon },
             ]

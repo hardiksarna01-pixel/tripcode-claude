@@ -106,6 +106,8 @@ import AdminCourseBuilder from './pages/admin/CourseBuilder';
 import AdminQuestionBank from './pages/admin/QuestionBank';
 import AdminCertificateTemplates from './pages/admin/CertificateTemplates';
 import AdminCertificationRevenue from './pages/admin/CertificationRevenue';
+import AdminGroups from './pages/admin/Groups';
+import AdminSchemes from './pages/admin/Schemes';
 
 // Certification Pages (Agent/Public)
 import CertificationHub from './pages/certification/CertificationHub';
@@ -304,6 +306,8 @@ function App() {
                             >
                                 <Route path="dashboard" element={<AdminDashboard />} />
                                 <Route path="agents" element={<AdminAgents />} />
+                                <Route path="groups" element={<AdminGroups />} />
+                                <Route path="schemes" element={<AdminSchemes />} />
                                 <Route path="bookings" element={<AdminBookings />} />
                                 <Route path="finance" element={<AdminFinance />} />
                                 <Route path="reports" element={<AdminReports />} />

@@ -36,9 +36,10 @@ const AdminAgents = () => {
     const fetchAgents = async () => {
         try {
             const response = await api.get('/admin/agents', { params: { status: statusFilter } });
-            setAgents(response.data);
+            const agentsData = response.data?.data || response.data || [];
+            setAgents(Array.isArray(agentsData) ? agentsData : []);
         } catch (error) {
-            // Mock data
+            // Mock data for development
             setAgents([
                 { id: 'AGT001', name: 'ABC Travels', email: 'abc@travels.com', phone: '9876543210', city: 'Mumbai', status: 'active', walletBalance: 125000, creditLimit: 500000, totalBookings: 450, joinDate: '2023-01-15' },
                 { id: 'AGT002', name: 'XYZ Tours', email: 'xyz@tours.com', phone: '9876543211', city: 'Delhi', status: 'active', walletBalance: 89000, creditLimit: 300000, totalBookings: 320, joinDate: '2023-02-20' },
