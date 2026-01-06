@@ -74,14 +74,15 @@ const AdminLogin = () => {
                 setTwoFactorMethod(response.data.twoFactorMethod || 'authenticator');
             } else if (response.data.success && response.data.data) {
                 const { user, accessToken, refreshToken } = response.data.data;
-                localStorage.setItem('adminToken', accessToken);
+                localStorage.setItem('adminAccessToken', accessToken);
                 localStorage.setItem('adminRefreshToken', refreshToken);
                 localStorage.setItem('admin', JSON.stringify(user));
 
+                // Force navigation with window.location for immediate effect
                 if (user.role === 'super_admin') {
-                    navigate('/superadmin/dashboard');
+                    window.location.href = '/superadmin/dashboard';
                 } else {
-                    navigate('/admin/dashboard');
+                    window.location.href = '/admin/dashboard';
                 }
             }
         } catch (err) {

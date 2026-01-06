@@ -70,11 +70,11 @@ const Login = () => {
                 localStorage.setItem('refreshToken', refreshToken);
                 localStorage.setItem('user', JSON.stringify(user));
 
-                // Redirect based on user type
+                // Force navigation with window.location for immediate effect
                 if (user.type === 'agent') {
-                    navigate('/agent/dashboard');
+                    window.location.href = '/agent/dashboard';
                 } else {
-                    navigate('/my/dashboard');
+                    window.location.href = '/my/dashboard';
                 }
             }
         } catch (err) {
