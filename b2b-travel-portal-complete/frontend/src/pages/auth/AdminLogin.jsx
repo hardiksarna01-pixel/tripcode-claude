@@ -64,27 +64,28 @@ const AdminLogin = () => {
         setError('');
 
         try {
-            const response = await api.post('/auth/admin/login', {
+            const response = await api.post('/admin/auth/login', {
                 email: formData.email,
-                password: formData.password,
-                adminType
+                password: formData.password
             });
 
             if (response.data.requires2FA) {
                 setStep(2);
                 setTwoFactorMethod(response.data.twoFactorMethod || 'authenticator');
-            } else if (response.data.token) {
-                localStorage.setItem('adminToken', response.data.token);
-                localStorage.setItem('admin', JSON.stringify(response.data.admin));
+            } else if (response.data.success && response.data.data) {
+                const { user, accessToken, refreshToken } = response.data.data;
+                localStorage.setItem('adminToken', accessToken);
+                localStorage.setItem('adminRefreshToken', refreshToken);
+                localStorage.setItem('admin', JSON.stringify(user));
 
-                if (adminType === 'superadmin') {
+                if (user.role === 'super_admin') {
                     navigate('/superadmin/dashboard');
                 } else {
                     navigate('/admin/dashboard');
                 }
             }
         } catch (err) {
-            setError(err.response?.data?.message || 'Invalid credentials. Please try again.');
+            setError(err.response?.data?.error?.message || 'Invalid credentials. Please try again.');
         } finally {
             setLoading(false);
         }

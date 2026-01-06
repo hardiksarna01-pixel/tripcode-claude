@@ -58,22 +58,23 @@ const Login = () => {
 
         try {
             const loginData = {
-                [loginMethod]: loginMethod === 'email' ? formData.email : formData.phone,
-                password: formData.password,
-                userType: loginType
+                email: formData.email,
+                password: formData.password
             };
 
             const response = await api.post('/auth/login', loginData);
 
-            if (response.data.token) {
-                localStorage.setItem('token', response.data.token);
-                localStorage.setItem('user', JSON.stringify(response.data.user));
+            if (response.data.success && response.data.data) {
+                const { user, accessToken, refreshToken } = response.data.data;
+                localStorage.setItem('accessToken', accessToken);
+                localStorage.setItem('refreshToken', refreshToken);
+                localStorage.setItem('user', JSON.stringify(user));
 
                 // Redirect based on user type
-                if (loginType === 'agent') {
+                if (user.type === 'agent') {
                     navigate('/agent/dashboard');
                 } else {
-                    navigate('/customer/dashboard');
+                    navigate('/my/dashboard');
                 }
             }
         } catch (err) {
