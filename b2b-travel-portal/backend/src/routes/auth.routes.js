@@ -8,21 +8,18 @@ const { catchAsync } = require('../utils/catchAsync');
 // In production, this would come from database
 const mockAgents = new Map();
 
-// Initialize test agent on module load
-(async () => {
-    const testAgentHash = await bcrypt.hash('agent123', 10);
-    mockAgents.set('agent@flyshop.com', {
-        id: '1',
-        email: 'agent@flyshop.com',
-        password: testAgentHash,
-        companyName: 'Demo Travel Agency',
-        mobile: '9876543210',
-        apiUserId: 'DEMO001',
-        apiPasswordHash: 'DEMO_HASH',
-        role: 'AGENT',
-        createdAt: new Date()
-    });
-})();
+// Test agent - password: agent123
+mockAgents.set('agent@flyshop.com', {
+    id: '1',
+    email: 'agent@flyshop.com',
+    password: bcrypt.hashSync('agent123', 10),
+    companyName: 'Demo Travel Agency',
+    mobile: '9876543210',
+    apiUserId: 'DEMO001',
+    apiPasswordHash: 'DEMO_HASH',
+    role: 'AGENT',
+    createdAt: new Date()
+});
 
 /**
  * @route   POST /api/v1/auth/register
