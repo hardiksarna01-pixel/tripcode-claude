@@ -16,12 +16,25 @@ const refreshTokens = new Map();
 // Initialize with default super admin
 adminUsers.set(1, {
     id: 1,
-    email: 'admin@travelportal.com',
-    password: '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/X4C0qlF.Ksr7z8x5i', // admin123
+    email: 'admin@flyshop.com',
+    password: bcrypt.hashSync('admin123', 10),
     firstName: 'Super',
     lastName: 'Admin',
     role: 'super_admin',
     tenantId: null, // Super admin has access to all tenants
+    status: 'active',
+    createdAt: new Date().toISOString()
+});
+
+// Regular admin
+adminUsers.set(2, {
+    id: 2,
+    email: 'manager@flyshop.com',
+    password: bcrypt.hashSync('manager123', 10),
+    firstName: 'Company',
+    lastName: 'Manager',
+    role: 'admin',
+    tenantId: 1,
     status: 'active',
     createdAt: new Date().toISOString()
 });

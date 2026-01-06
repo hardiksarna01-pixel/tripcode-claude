@@ -15,6 +15,49 @@ const users = new Map();
 const otpStore = new Map();
 const refreshTokens = new Map();
 
+// Pre-seed test users
+const seedTestUsers = () => {
+    // Test Agent
+    users.set(1, {
+        id: 1,
+        email: 'agent@flyshop.com',
+        password: bcrypt.hashSync('agent123', 10),
+        firstName: 'Demo',
+        lastName: 'Agent',
+        phone: '9876543210',
+        companyName: 'Demo Travel Agency',
+        panNumber: 'ABCDE1234F',
+        gstNumber: '22ABCDE1234F1Z5',
+        address: 'Mumbai, India',
+        type: 'agent',
+        status: 'active',
+        tenantId: 1,
+        walletBalance: 50000,
+        creditLimit: 100000,
+        createdAt: new Date().toISOString()
+    });
+
+    // Test Customer
+    users.set(2, {
+        id: 2,
+        email: 'customer@test.com',
+        password: bcrypt.hashSync('customer123', 10),
+        firstName: 'Test',
+        lastName: 'Customer',
+        phone: '9876543211',
+        companyName: null,
+        type: 'customer',
+        status: 'active',
+        tenantId: 1,
+        walletBalance: 5000,
+        creditLimit: 0,
+        createdAt: new Date().toISOString()
+    });
+};
+
+// Initialize test users
+seedTestUsers();
+
 /**
  * Generate JWT tokens
  */
