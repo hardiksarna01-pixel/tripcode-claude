@@ -293,6 +293,10 @@ function App() {
                                 <Route path="dashboard" element={<CustomerDashboard />} />
                                 <Route path="bookings" element={<CustomerBookings />} />
                                 <Route path="profile" element={<CustomerProfile />} />
+
+                                {/* Customer AI Tools */}
+                                <Route path="ai/chatbot" element={<AIChatbot />} />
+                                <Route path="ai/trip-planner" element={<AITripPlanner />} />
                             </Route>
 
                             {/* Admin Routes */}
@@ -340,6 +344,12 @@ function App() {
                                 <Route path="certifications/questions" element={<AdminQuestionBank />} />
                                 <Route path="certifications/templates" element={<AdminCertificateTemplates />} />
                                 <Route path="certifications/revenue" element={<AdminCertificationRevenue />} />
+
+                                {/* Admin AI Tools */}
+                                <Route path="ai/chatbot" element={<AIChatbot />} />
+                                <Route path="ai/trip-planner" element={<AITripPlanner />} />
+                                <Route path="ai/image-generator" element={<AIImageGenerator />} />
+                                <Route path="ai/analytics" element={<AdminAnalytics />} />
                             </Route>
 
                             {/* Super Admin Routes */}
@@ -365,6 +375,12 @@ function App() {
                                 <Route path="feature-flags" element={<SuperAdminFeatureFlags />} />
                                 <Route path="announcements" element={<SuperAdminAnnouncements />} />
                                 <Route path="analytics" element={<SuperAdminAnalytics />} />
+
+                                {/* Super Admin AI Tools */}
+                                <Route path="ai/chatbot" element={<AIChatbot />} />
+                                <Route path="ai/trip-planner" element={<AITripPlanner />} />
+                                <Route path="ai/image-generator" element={<AIImageGenerator />} />
+                                <Route path="ai/analytics" element={<SuperAdminAnalytics />} />
                             </Route>
 
                             {/* 404 */}

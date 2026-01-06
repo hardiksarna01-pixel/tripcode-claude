@@ -25,7 +25,12 @@ import {
     Bars3Icon,
     XMarkIcon,
     BellIcon,
-    MagnifyingGlassIcon
+    MagnifyingGlassIcon,
+    SparklesIcon,
+    ChatBubbleLeftRightIcon,
+    PhotoIcon,
+    MapIcon,
+    CpuChipIcon
 } from '@heroicons/react/24/outline';
 import './AdminLayout.css';
 
@@ -103,6 +108,15 @@ const AdminLayout = ({ isSuperAdmin = false }) => {
             items: [
                 { name: 'Certifications', path: '/admin/certifications', icon: KeyIcon },
             ]
+        },
+        {
+            title: 'AI Tools',
+            items: [
+                { name: 'AI Chatbot', path: '/admin/ai/chatbot', icon: ChatBubbleLeftRightIcon },
+                { name: 'AI Trip Planner', path: '/admin/ai/trip-planner', icon: MapIcon },
+                { name: 'AI Image Generator', path: '/admin/ai/image-generator', icon: PhotoIcon },
+                { name: 'AI Analytics', path: '/admin/ai/analytics', icon: CpuChipIcon },
+            ]
         }
     ];
 
@@ -144,6 +158,15 @@ const AdminLayout = ({ isSuperAdmin = false }) => {
                 { name: 'Analytics', path: '/superadmin/analytics', icon: ChartBarIcon },
                 { name: 'Reports', path: '/superadmin/reports', icon: ChartBarIcon },
                 { name: 'Announcements', path: '/superadmin/announcements', icon: BellIcon },
+            ]
+        },
+        {
+            title: 'AI Tools',
+            items: [
+                { name: 'AI Chatbot', path: '/superadmin/ai/chatbot', icon: ChatBubbleLeftRightIcon },
+                { name: 'AI Trip Planner', path: '/superadmin/ai/trip-planner', icon: MapIcon },
+                { name: 'AI Image Generator', path: '/superadmin/ai/image-generator', icon: PhotoIcon },
+                { name: 'AI Platform Analytics', path: '/superadmin/ai/analytics', icon: CpuChipIcon },
             ]
         }
     ];

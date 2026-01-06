@@ -21,7 +21,11 @@ import {
     DocumentTextIcon,
     AcademicCapIcon,
     BanknotesIcon,
-    Bars3Icon
+    Bars3Icon,
+    SparklesIcon,
+    ChatBubbleLeftRightIcon,
+    PhotoIcon,
+    MapIcon
 } from '@heroicons/react/24/outline';
 
 const MainLayout = ({ showSidebar = false, sidebarType = null }) => {
@@ -44,12 +48,17 @@ const MainLayout = ({ showSidebar = false, sidebarType = null }) => {
         { name: 'Visa', path: '/agent/visa', icon: DocumentTextIcon },
         { name: 'Insurance', path: '/agent/insurance', icon: DocumentTextIcon },
         { name: 'Certifications', path: '/agent/certifications', icon: AcademicCapIcon },
+        { name: 'AI Chatbot', path: '/agent/ai/chatbot', icon: ChatBubbleLeftRightIcon },
+        { name: 'AI Trip Planner', path: '/agent/ai/trip-planner', icon: MapIcon },
+        { name: 'AI Image Gen', path: '/agent/ai/image-generator', icon: PhotoIcon },
         { name: 'Profile', path: '/agent/profile', icon: UserIcon },
     ];
 
     const customerMenuItems = [
         { name: 'Dashboard', path: '/my/dashboard', icon: HomeIcon },
         { name: 'My Bookings', path: '/my/bookings', icon: TicketIcon },
+        { name: 'AI Chatbot', path: '/my/ai/chatbot', icon: ChatBubbleLeftRightIcon },
+        { name: 'AI Trip Planner', path: '/my/ai/trip-planner', icon: MapIcon },
         { name: 'Profile', path: '/my/profile', icon: UserIcon },
     ];
 
