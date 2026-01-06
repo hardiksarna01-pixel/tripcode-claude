@@ -13,6 +13,31 @@ import LoginPage from './pages/auth/LoginPage';           // For AGENTS only
 import AdminLoginPage from './pages/auth/AdminLoginPage'; // For ADMIN & SUPER ADMIN
 import RegisterPage from './pages/auth/RegisterPage';
 
+// AGENT PAGES
+import AgentDashboard from './pages/agent/Dashboard';
+import AgentBookings from './pages/agent/Bookings';
+import AgentWallet from './pages/agent/Wallet';
+import AgentProfile from './pages/agent/Profile';
+import AgentFlightSearch from './pages/agent/FlightSearch';
+import AgentBookingDetails from './pages/agent/BookingDetails';
+
+// ADMIN PAGES
+import AdminDashboard from './pages/admin/Dashboard';
+import AgentManagement from './pages/admin/AgentManagement';
+import SignupApprovals from './pages/admin/SignupApprovals';
+import GroupManagement from './pages/admin/GroupManagement';
+import SchemeManagement from './pages/admin/SchemeManagement';
+import ApiProviders from './pages/admin/ApiProviders';
+import BrandingTheme from './pages/admin/BrandingTheme';
+import B2CPortal from './pages/admin/B2CPortal';
+import B2BPortal from './pages/admin/B2BPortal';
+import TenantManagement from './pages/admin/TenantManagement';
+import CustomDomains from './pages/admin/CustomDomains';
+import EmailTemplates from './pages/admin/EmailTemplates';
+import BookingReports from './pages/admin/BookingReports';
+import RevenueReports from './pages/admin/RevenueReports';
+import SystemSettings from './pages/admin/SystemSettings';
+
 // Generic placeholder page for routes not yet implemented
 const PlaceholderPage = ({ title }) => (
   <div className="bg-white rounded-xl shadow-sm p-8">
@@ -122,12 +147,14 @@ function App() {
           </AgentRoute>
         }>
           <Route index element={<Navigate to="/agent/dashboard" replace />} />
-          <Route path="dashboard" element={<PlaceholderPage title="Agent Dashboard" />} />
-          <Route path="bookings" element={<PlaceholderPage title="Bookings" />} />
-          <Route path="wallet" element={<PlaceholderPage title="Wallet" />} />
+          <Route path="dashboard" element={<AgentDashboard />} />
+          <Route path="bookings" element={<AgentBookings />} />
+          <Route path="booking/:id" element={<AgentBookingDetails />} />
+          <Route path="wallet" element={<AgentWallet />} />
+          <Route path="flights" element={<AgentFlightSearch />} />
+          <Route path="profile" element={<AgentProfile />} />
           <Route path="reports" element={<PlaceholderPage title="Reports" />} />
           <Route path="commissions" element={<PlaceholderPage title="Commissions" />} />
-          <Route path="profile" element={<PlaceholderPage title="Profile" />} />
           <Route path="certification-hub" element={<PlaceholderPage title="Certification Hub" />} />
           <Route path="my-courses" element={<PlaceholderPage title="My Courses" />} />
           <Route path="courses-catalog" element={<PlaceholderPage title="Courses Catalog" />} />
@@ -151,36 +178,35 @@ function App() {
           {/* Protected Admin Routes */}
           <Route element={<AdminRoute><AdminLayout /></AdminRoute>}>
             <Route index element={<Navigate to="/admin/dashboard" replace />} />
-            <Route path="dashboard" element={<PlaceholderPage title="Admin Dashboard" />} />
-          <Route path="agents" element={<PlaceholderPage title="Agents" />} />
-          <Route path="bookings" element={<PlaceholderPage title="Bookings" />} />
-          <Route path="finance" element={<PlaceholderPage title="Finance" />} />
-          <Route path="reports" element={<PlaceholderPage title="Reports" />} />
-          <Route path="markup" element={<PlaceholderPage title="Markup" />} />
-          <Route path="suppliers" element={<PlaceholderPage title="Suppliers" />} />
-          <Route path="users" element={<PlaceholderPage title="Users" />} />
-          <Route path="settings" element={<PlaceholderPage title="Settings" />} />
-          <Route path="support" element={<PlaceholderPage title="Support" />} />
-          <Route path="commissions" element={<PlaceholderPage title="Commissions" />} />
-          <Route path="credit-management" element={<PlaceholderPage title="Credit Management" />} />
-          <Route path="customers" element={<PlaceholderPage title="Customers" />} />
-          <Route path="notifications" element={<PlaceholderPage title="Notifications" />} />
-          <Route path="audit-logs" element={<PlaceholderPage title="Audit Logs" />} />
-          <Route path="analytics" element={<PlaceholderPage title="Analytics" />} />
-          <Route path="flights" element={<PlaceholderPage title="Flights" />} />
-          <Route path="hotels" element={<PlaceholderPage title="Hotels" />} />
-          <Route path="buses" element={<PlaceholderPage title="Buses" />} />
-          <Route path="holidays" element={<PlaceholderPage title="Holidays" />} />
-          <Route path="visa" element={<PlaceholderPage title="Visa" />} />
-          <Route path="insurance" element={<PlaceholderPage title="Insurance" />} />
-          <Route path="promo-codes" element={<PlaceholderPage title="Promo Codes" />} />
-          <Route path="email-templates" element={<PlaceholderPage title="Email Templates" />} />
-          <Route path="payment-gateway" element={<PlaceholderPage title="Payment Gateway" />} />
-          <Route path="certification-management" element={<PlaceholderPage title="Certification Management" />} />
-          <Route path="course-builder" element={<PlaceholderPage title="Course Builder" />} />
-          <Route path="question-bank" element={<PlaceholderPage title="Question Bank" />} />
-          <Route path="certificate-templates" element={<PlaceholderPage title="Certificate Templates" />} />
-          <Route path="revenue-analytics" element={<PlaceholderPage title="Revenue Analytics" />} />
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="agents" element={<AgentManagement />} />
+            <Route path="signup-approvals" element={<SignupApprovals />} />
+            <Route path="groups" element={<GroupManagement />} />
+            <Route path="schemes" element={<SchemeManagement />} />
+            <Route path="api-providers" element={<ApiProviders />} />
+            <Route path="branding-theme" element={<BrandingTheme />} />
+            <Route path="b2c-portal" element={<B2CPortal />} />
+            <Route path="b2b-portal" element={<B2BPortal />} />
+            <Route path="tenant-management" element={<TenantManagement />} />
+            <Route path="custom-domains" element={<CustomDomains />} />
+            <Route path="email-templates" element={<EmailTemplates />} />
+            <Route path="booking-reports" element={<BookingReports />} />
+            <Route path="revenue-reports" element={<RevenueReports />} />
+            <Route path="system-settings" element={<SystemSettings />} />
+            <Route path="bookings" element={<PlaceholderPage title="Bookings" />} />
+            <Route path="finance" element={<PlaceholderPage title="Finance" />} />
+            <Route path="reports" element={<PlaceholderPage title="Reports" />} />
+            <Route path="markup" element={<PlaceholderPage title="Markup" />} />
+            <Route path="suppliers" element={<PlaceholderPage title="Suppliers" />} />
+            <Route path="users" element={<PlaceholderPage title="Users" />} />
+            <Route path="settings" element={<SystemSettings />} />
+            <Route path="support" element={<PlaceholderPage title="Support" />} />
+            <Route path="commissions" element={<PlaceholderPage title="Commissions" />} />
+            <Route path="credit-management" element={<PlaceholderPage title="Credit Management" />} />
+            <Route path="customers" element={<PlaceholderPage title="Customers" />} />
+            <Route path="notifications" element={<PlaceholderPage title="Notifications" />} />
+            <Route path="audit-logs" element={<PlaceholderPage title="Audit Logs" />} />
+            <Route path="analytics" element={<RevenueReports />} />
           </Route>
         </Route>
 
