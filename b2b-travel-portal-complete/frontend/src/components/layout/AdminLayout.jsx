@@ -41,37 +41,65 @@ const AdminLayout = ({ isSuperAdmin = false }) => {
             title: 'Overview',
             items: [
                 { name: 'Dashboard', path: '/admin/dashboard', icon: HomeIcon },
+                { name: 'Analytics', path: '/admin/analytics', icon: ChartBarIcon },
             ]
         },
         {
             title: 'Agent Management',
             items: [
                 { name: 'Agents', path: '/admin/agents', icon: UsersIcon },
-                { name: 'Groups', path: '/admin/groups', icon: UserGroupIcon },
-                { name: 'Schemes', path: '/admin/schemes', icon: TagIcon },
+                { name: 'Credit Management', path: '/admin/credit', icon: BanknotesIcon },
+                { name: 'Customers', path: '/admin/customers', icon: UserGroupIcon },
+            ]
+        },
+        {
+            title: 'Products',
+            items: [
+                { name: 'Flights', path: '/admin/flights', icon: CubeIcon },
+                { name: 'Hotels', path: '/admin/hotels', icon: BuildingOfficeIcon },
+                { name: 'Buses', path: '/admin/buses', icon: CubeIcon },
+                { name: 'Holidays', path: '/admin/holidays', icon: CubeIcon },
+                { name: 'Visa', path: '/admin/visa', icon: CubeIcon },
+                { name: 'Insurance', path: '/admin/insurance', icon: ShieldCheckIcon },
+            ]
+        },
+        {
+            title: 'Finance & Commissions',
+            items: [
+                { name: 'Commissions', path: '/admin/commissions', icon: CurrencyDollarIcon },
+                { name: 'Global Markup', path: '/admin/markup', icon: TagIcon },
+                { name: 'Finance', path: '/admin/finance', icon: BanknotesIcon },
+                { name: 'Reports', path: '/admin/reports', icon: ChartBarIcon },
             ]
         },
         {
             title: 'Configuration',
             items: [
                 { name: 'Suppliers', path: '/admin/suppliers', icon: CubeIcon },
-                { name: 'Global Markup', path: '/admin/markup', icon: CurrencyDollarIcon },
+                { name: 'Payment Gateway', path: '/admin/payment-gateway', icon: CurrencyDollarIcon },
+                { name: 'Promo Codes', path: '/admin/promo-codes', icon: TagIcon },
             ]
         },
         {
-            title: 'Finance',
+            title: 'Communication',
             items: [
-                { name: 'Finance', path: '/admin/finance', icon: BanknotesIcon },
-                { name: 'Reports', path: '/admin/reports', icon: ChartBarIcon },
+                { name: 'Notifications', path: '/admin/notifications', icon: BellIcon },
+                { name: 'Email Templates', path: '/admin/email-templates', icon: EnvelopeIcon },
+                { name: 'Support', path: '/admin/support', icon: UserGroupIcon },
             ]
         },
         {
             title: 'Settings',
             items: [
                 { name: 'General Settings', path: '/admin/settings', icon: Cog6ToothIcon },
-                { name: 'Whitelabel', path: '/admin/whitelabel', icon: PaintBrushIcon },
-                { name: 'Templates', path: '/admin/templates', icon: EnvelopeIcon },
-                { name: 'API Keys', path: '/admin/api-keys', icon: KeyIcon },
+                { name: 'Users', path: '/admin/users', icon: UsersIcon },
+                { name: 'Audit Logs', path: '/admin/audit-logs', icon: EnvelopeIcon },
+            ]
+        },
+        {
+            title: 'LMS & Certifications',
+            items: [
+                { name: 'Certifications', path: '/admin/certifications', icon: KeyIcon },
             ]
         }
     ];
@@ -81,23 +109,39 @@ const AdminLayout = ({ isSuperAdmin = false }) => {
             title: 'Platform',
             items: [
                 { name: 'Dashboard', path: '/superadmin/dashboard', icon: HomeIcon },
-                { name: 'Tenants', path: '/superadmin/tenants', icon: BuildingOfficeIcon },
-                { name: 'Admin Users', path: '/superadmin/admins', icon: ShieldCheckIcon },
+                { name: 'Companies', path: '/superadmin/companies', icon: BuildingOfficeIcon },
+                { name: 'Users', path: '/superadmin/users', icon: UsersIcon },
+            ]
+        },
+        {
+            title: 'Subscription',
+            items: [
+                { name: 'Plans', path: '/superadmin/plans', icon: TagIcon },
+                { name: 'Billing', path: '/superadmin/billing', icon: BanknotesIcon },
             ]
         },
         {
             title: 'Configuration',
             items: [
                 { name: 'Suppliers', path: '/superadmin/suppliers', icon: CubeIcon },
-                { name: 'Payment Gateways', path: '/superadmin/payment-gateways', icon: CurrencyDollarIcon },
+                { name: 'API Management', path: '/superadmin/api', icon: KeyIcon },
+                { name: 'Feature Flags', path: '/superadmin/feature-flags', icon: ShieldCheckIcon },
             ]
         },
         {
             title: 'System',
             items: [
-                { name: 'Platform Settings', path: '/superadmin/settings', icon: Cog6ToothIcon },
-                { name: 'System Health', path: '/superadmin/health', icon: ChartBarIcon },
-                { name: 'Logs', path: '/superadmin/logs', icon: EnvelopeIcon },
+                { name: 'Global Settings', path: '/superadmin/settings', icon: Cog6ToothIcon },
+                { name: 'System Health', path: '/superadmin/system-health', icon: ChartBarIcon },
+                { name: 'Audit Logs', path: '/superadmin/audit-logs', icon: EnvelopeIcon },
+            ]
+        },
+        {
+            title: 'Reports',
+            items: [
+                { name: 'Analytics', path: '/superadmin/analytics', icon: ChartBarIcon },
+                { name: 'Reports', path: '/superadmin/reports', icon: ChartBarIcon },
+                { name: 'Announcements', path: '/superadmin/announcements', icon: BellIcon },
             ]
         }
     ];
