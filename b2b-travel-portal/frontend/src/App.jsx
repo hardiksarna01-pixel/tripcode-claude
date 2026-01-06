@@ -38,6 +38,12 @@ import BookingReports from './pages/admin/BookingReports';
 import RevenueReports from './pages/admin/RevenueReports';
 import SystemSettings from './pages/admin/SystemSettings';
 
+// SUPER ADMIN PAGES
+import SuperAdminDashboard from './pages/superadmin/Dashboard';
+import SuperAdminCompanies from './pages/superadmin/Companies';
+import SuperAdminSystemHealth from './pages/superadmin/SystemHealth';
+import SuperAdminGlobalSettings from './pages/superadmin/GlobalSettings';
+
 // Generic placeholder page for routes not yet implemented
 const PlaceholderPage = ({ title }) => (
   <div className="bg-white rounded-xl shadow-sm p-8">
@@ -220,14 +226,14 @@ function App() {
           </SuperAdminRoute>
         }>
           <Route index element={<Navigate to="/superadmin/dashboard" replace />} />
-          <Route path="dashboard" element={<PlaceholderPage title="Super Admin Dashboard" />} />
-          <Route path="companies" element={<PlaceholderPage title="Companies" />} />
+          <Route path="dashboard" element={<SuperAdminDashboard />} />
+          <Route path="companies" element={<SuperAdminCompanies />} />
           <Route path="plans" element={<PlaceholderPage title="Plans" />} />
           <Route path="billing" element={<PlaceholderPage title="Billing" />} />
           <Route path="users" element={<PlaceholderPage title="Users" />} />
           <Route path="api-management" element={<PlaceholderPage title="API Management" />} />
-          <Route path="system-health" element={<PlaceholderPage title="System Health" />} />
-          <Route path="global-settings" element={<PlaceholderPage title="Global Settings" />} />
+          <Route path="system-health" element={<SuperAdminSystemHealth />} />
+          <Route path="global-settings" element={<SuperAdminGlobalSettings />} />
           <Route path="supplier-hub" element={<PlaceholderPage title="Supplier Hub" />} />
           <Route path="reports" element={<PlaceholderPage title="Reports" />} />
           <Route path="audit-logs" element={<PlaceholderPage title="Audit Logs" />} />
