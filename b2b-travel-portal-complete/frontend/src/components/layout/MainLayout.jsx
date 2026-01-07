@@ -26,7 +26,11 @@ import {
     ChatBubbleLeftRightIcon,
     PhotoIcon,
     MapIcon,
-    ArrowRightOnRectangleIcon
+    ArrowRightOnRectangleIcon,
+    ArrowPathIcon,
+    CalendarDaysIcon,
+    XCircleIcon,
+    NoSymbolIcon
 } from '@heroicons/react/24/outline';
 
 const MainLayout = ({ showSidebar = false, sidebarType = null }) => {
@@ -48,6 +52,14 @@ const MainLayout = ({ showSidebar = false, sidebarType = null }) => {
         { name: 'Holidays', path: '/agent/holidays', icon: HeartIcon },
         { name: 'Visa', path: '/agent/visa', icon: DocumentTextIcon },
         { name: 'Insurance', path: '/agent/insurance', icon: DocumentTextIcon },
+        // PNR Management
+        { name: 'PNR Management', path: '/agent/pnr', icon: TicketIcon },
+        { name: 'Issue Ticket', path: '/agent/pnr/issue', icon: TicketIcon },
+        { name: 'Reissue Ticket', path: '/agent/pnr/reissue', icon: ArrowPathIcon },
+        { name: 'Date Change', path: '/agent/pnr/date-change', icon: CalendarDaysIcon },
+        { name: 'Cancellation', path: '/agent/pnr/cancellation', icon: XCircleIcon },
+        { name: 'VOID Request', path: '/agent/pnr/void', icon: NoSymbolIcon },
+        // Other
         { name: 'Certifications', path: '/agent/certifications', icon: AcademicCapIcon },
         { name: 'AI Chatbot', path: '/agent/ai/chatbot', icon: ChatBubbleLeftRightIcon },
         { name: 'AI Trip Planner', path: '/agent/ai/trip-planner', icon: MapIcon },

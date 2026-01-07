@@ -37,7 +37,13 @@ import {
     DocumentTextIcon,
     LinkIcon,
     CommandLineIcon,
-    ServerIcon
+    ServerIcon,
+    TicketIcon,
+    ArrowPathIcon,
+    CalendarDaysIcon,
+    XCircleIcon,
+    NoSymbolIcon,
+    ClockIcon
 } from '@heroicons/react/24/outline';
 import './AdminLayout.css';
 
@@ -75,6 +81,19 @@ const AdminLayout = ({ isSuperAdmin = false }) => {
                 { name: 'Holidays', path: '/admin/holidays', icon: CubeIcon },
                 { name: 'Visa', path: '/admin/visa', icon: CubeIcon },
                 { name: 'Insurance', path: '/admin/insurance', icon: ShieldCheckIcon },
+            ]
+        },
+        {
+            title: 'PNR Management',
+            items: [
+                { name: 'Pending Approvals', path: '/admin/pnr', icon: ClockIcon },
+                { name: 'Issue Tickets', path: '/admin/pnr/issue', icon: TicketIcon },
+                { name: 'Reissue Requests', path: '/admin/pnr/reissue', icon: ArrowPathIcon },
+                { name: 'Date Changes', path: '/admin/pnr/date-change', icon: CalendarDaysIcon },
+                { name: 'Cancellations', path: '/admin/pnr/cancellation', icon: XCircleIcon },
+                { name: 'VOID Requests', path: '/admin/pnr/void', icon: NoSymbolIcon },
+                { name: 'PNR History', path: '/admin/pnr/history', icon: ChartBarIcon },
+                { name: 'PNR Notifications', path: '/admin/pnr/notifications', icon: BellIcon },
             ]
         },
         {
@@ -175,6 +194,20 @@ const AdminLayout = ({ isSuperAdmin = false }) => {
                 { name: 'Global Settings', path: '/superadmin/settings', icon: Cog6ToothIcon },
                 { name: 'System Health', path: '/superadmin/system-health', icon: ChartBarIcon },
                 { name: 'Audit Logs', path: '/superadmin/audit-logs', icon: EnvelopeIcon },
+            ]
+        },
+        {
+            title: 'PNR Operations',
+            items: [
+                { name: 'All PNR Requests', path: '/superadmin/pnr', icon: TicketIcon },
+                { name: 'Pending Approvals', path: '/superadmin/pnr/pending', icon: ClockIcon },
+                { name: 'Issue Management', path: '/superadmin/pnr/issue', icon: TicketIcon },
+                { name: 'Reissue Management', path: '/superadmin/pnr/reissue', icon: ArrowPathIcon },
+                { name: 'Date Changes', path: '/superadmin/pnr/date-change', icon: CalendarDaysIcon },
+                { name: 'Cancellations', path: '/superadmin/pnr/cancellation', icon: XCircleIcon },
+                { name: 'VOID Management', path: '/superadmin/pnr/void', icon: NoSymbolIcon },
+                { name: 'PNR History', path: '/superadmin/pnr/history', icon: ChartBarIcon },
+                { name: 'PNR Notifications', path: '/superadmin/pnr/notifications', icon: BellIcon },
             ]
         },
         {

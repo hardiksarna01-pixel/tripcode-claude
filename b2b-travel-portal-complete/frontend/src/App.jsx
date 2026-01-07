@@ -115,6 +115,19 @@ import { Branding, Themes, DomainSettings, CustomPages } from './pages/admin/whi
 // Admin API Pages
 import { ApiKeys, ApiDocumentation, Webhooks, Integrations } from './pages/admin/api';
 
+// Admin PNR Pages
+import { PNRManagement, PNRHistory, PNRNotifications } from './pages/admin/pnr';
+
+// Agent PNR Pages
+import {
+    PNRDashboard as AgentPNRDashboard,
+    IssueTicket,
+    ReissueTicket,
+    DateChange,
+    Cancellation,
+    VoidRequest
+} from './pages/agent/pnr';
+
 // Certification Pages (Agent/Public)
 import CertificationHub from './pages/certification/CertificationHub';
 import MyCourses from './pages/certification/MyCourses';
@@ -276,6 +289,14 @@ function App() {
                                 <Route path="ai/trip-planner" element={<AITripPlanner />} />
                                 <Route path="ai/image-generator" element={<AIImageGenerator />} />
 
+                                {/* Agent PNR Management Routes */}
+                                <Route path="pnr" element={<AgentPNRDashboard />} />
+                                <Route path="pnr/issue" element={<IssueTicket />} />
+                                <Route path="pnr/reissue" element={<ReissueTicket />} />
+                                <Route path="pnr/date-change" element={<DateChange />} />
+                                <Route path="pnr/cancellation" element={<Cancellation />} />
+                                <Route path="pnr/void" element={<VoidRequest />} />
+
                                 {/* Agent Certification Routes */}
                                 <Route path="certifications" element={<CertificationHub />} />
                                 <Route path="certifications/my-courses" element={<MyCourses />} />
@@ -357,6 +378,16 @@ function App() {
                                 <Route path="ai/image-generator" element={<AIImageGenerator />} />
                                 <Route path="ai/analytics" element={<AdminAnalytics />} />
 
+                                {/* Admin PNR Management Routes */}
+                                <Route path="pnr" element={<PNRManagement />} />
+                                <Route path="pnr/issue" element={<PNRManagement />} />
+                                <Route path="pnr/reissue" element={<PNRManagement />} />
+                                <Route path="pnr/date-change" element={<PNRManagement />} />
+                                <Route path="pnr/cancellation" element={<PNRManagement />} />
+                                <Route path="pnr/void" element={<PNRManagement />} />
+                                <Route path="pnr/history" element={<PNRHistory />} />
+                                <Route path="pnr/notifications" element={<PNRNotifications />} />
+
                                 {/* Admin Whitelabel Routes */}
                                 <Route path="whitelabel/branding" element={<Branding />} />
                                 <Route path="whitelabel/themes" element={<Themes />} />
@@ -399,6 +430,17 @@ function App() {
                                 <Route path="ai/trip-planner" element={<AITripPlanner />} />
                                 <Route path="ai/image-generator" element={<AIImageGenerator />} />
                                 <Route path="ai/analytics" element={<SuperAdminAnalytics />} />
+
+                                {/* Super Admin PNR Operations Routes */}
+                                <Route path="pnr" element={<PNRManagement />} />
+                                <Route path="pnr/pending" element={<PNRManagement />} />
+                                <Route path="pnr/issue" element={<PNRManagement />} />
+                                <Route path="pnr/reissue" element={<PNRManagement />} />
+                                <Route path="pnr/date-change" element={<PNRManagement />} />
+                                <Route path="pnr/cancellation" element={<PNRManagement />} />
+                                <Route path="pnr/void" element={<PNRManagement />} />
+                                <Route path="pnr/history" element={<PNRHistory />} />
+                                <Route path="pnr/notifications" element={<PNRNotifications />} />
 
                                 {/* Super Admin Whitelabel Routes */}
                                 <Route path="whitelabel/tenants" element={<Branding />} />
