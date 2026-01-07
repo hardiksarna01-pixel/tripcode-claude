@@ -64,6 +64,14 @@ const AdminLogin = () => {
         setError('');
 
         try {
+            // Clear any old auth data first
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('user');
+            localStorage.removeItem('adminAccessToken');
+            localStorage.removeItem('adminRefreshToken');
+            localStorage.removeItem('admin');
+
             const response = await api.post('/admin/auth/login', {
                 email: formData.email,
                 password: formData.password
