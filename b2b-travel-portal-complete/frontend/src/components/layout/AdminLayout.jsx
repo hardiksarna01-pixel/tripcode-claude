@@ -30,7 +30,14 @@ import {
     ChatBubbleLeftRightIcon,
     PhotoIcon,
     MapIcon,
-    CpuChipIcon
+    CpuChipIcon,
+    SwatchIcon,
+    GlobeAltIcon,
+    CodeBracketIcon,
+    DocumentTextIcon,
+    LinkIcon,
+    CommandLineIcon,
+    ServerIcon
 } from '@heroicons/react/24/outline';
 import './AdminLayout.css';
 
@@ -110,6 +117,24 @@ const AdminLayout = ({ isSuperAdmin = false }) => {
             ]
         },
         {
+            title: 'Whitelabel Solutions',
+            items: [
+                { name: 'Branding', path: '/admin/whitelabel/branding', icon: PaintBrushIcon },
+                { name: 'Themes', path: '/admin/whitelabel/themes', icon: SwatchIcon },
+                { name: 'Domain Settings', path: '/admin/whitelabel/domain', icon: GlobeAltIcon },
+                { name: 'Custom Pages', path: '/admin/whitelabel/pages', icon: DocumentTextIcon },
+            ]
+        },
+        {
+            title: 'API Solutions',
+            items: [
+                { name: 'API Keys', path: '/admin/api/keys', icon: KeyIcon },
+                { name: 'API Documentation', path: '/admin/api/docs', icon: CodeBracketIcon },
+                { name: 'Webhooks', path: '/admin/api/webhooks', icon: LinkIcon },
+                { name: 'Integrations', path: '/admin/api/integrations', icon: ServerIcon },
+            ]
+        },
+        {
             title: 'AI Tools',
             items: [
                 { name: 'AI Chatbot', path: '/admin/ai/chatbot', icon: ChatBubbleLeftRightIcon },
@@ -158,6 +183,27 @@ const AdminLayout = ({ isSuperAdmin = false }) => {
                 { name: 'Analytics', path: '/superadmin/analytics', icon: ChartBarIcon },
                 { name: 'Reports', path: '/superadmin/reports', icon: ChartBarIcon },
                 { name: 'Announcements', path: '/superadmin/announcements', icon: BellIcon },
+            ]
+        },
+        {
+            title: 'Whitelabel Solutions',
+            items: [
+                { name: 'Tenant Branding', path: '/superadmin/whitelabel/tenants', icon: BuildingOfficeIcon },
+                { name: 'Platform Branding', path: '/superadmin/whitelabel/platform', icon: PaintBrushIcon },
+                { name: 'Theme Management', path: '/superadmin/whitelabel/themes', icon: SwatchIcon },
+                { name: 'Domain Management', path: '/superadmin/whitelabel/domains', icon: GlobeAltIcon },
+                { name: 'Custom Templates', path: '/superadmin/whitelabel/templates', icon: DocumentTextIcon },
+            ]
+        },
+        {
+            title: 'API Solutions',
+            items: [
+                { name: 'API Gateway', path: '/superadmin/api/gateway', icon: ServerIcon },
+                { name: 'API Keys Management', path: '/superadmin/api/keys', icon: KeyIcon },
+                { name: 'Rate Limiting', path: '/superadmin/api/rate-limits', icon: ShieldCheckIcon },
+                { name: 'API Documentation', path: '/superadmin/api/docs', icon: CodeBracketIcon },
+                { name: 'Webhooks Config', path: '/superadmin/api/webhooks', icon: LinkIcon },
+                { name: 'Third-Party Integrations', path: '/superadmin/api/integrations', icon: CommandLineIcon },
             ]
         },
         {

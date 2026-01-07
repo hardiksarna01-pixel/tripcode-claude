@@ -109,6 +109,12 @@ import AdminCertificationRevenue from './pages/admin/CertificationRevenue';
 import AdminGroups from './pages/admin/Groups';
 import AdminSchemes from './pages/admin/Schemes';
 
+// Admin Whitelabel Pages
+import { Branding, Themes, DomainSettings, CustomPages } from './pages/admin/whitelabel';
+
+// Admin API Pages
+import { ApiKeys, ApiDocumentation, Webhooks, Integrations } from './pages/admin/api';
+
 // Certification Pages (Agent/Public)
 import CertificationHub from './pages/certification/CertificationHub';
 import MyCourses from './pages/certification/MyCourses';
@@ -350,6 +356,18 @@ function App() {
                                 <Route path="ai/trip-planner" element={<AITripPlanner />} />
                                 <Route path="ai/image-generator" element={<AIImageGenerator />} />
                                 <Route path="ai/analytics" element={<AdminAnalytics />} />
+
+                                {/* Admin Whitelabel Routes */}
+                                <Route path="whitelabel/branding" element={<Branding />} />
+                                <Route path="whitelabel/themes" element={<Themes />} />
+                                <Route path="whitelabel/domain" element={<DomainSettings />} />
+                                <Route path="whitelabel/pages" element={<CustomPages />} />
+
+                                {/* Admin API Routes */}
+                                <Route path="api/keys" element={<ApiKeys />} />
+                                <Route path="api/docs" element={<ApiDocumentation />} />
+                                <Route path="api/webhooks" element={<Webhooks />} />
+                                <Route path="api/integrations" element={<Integrations />} />
                             </Route>
 
                             {/* Super Admin Routes */}
@@ -381,6 +399,21 @@ function App() {
                                 <Route path="ai/trip-planner" element={<AITripPlanner />} />
                                 <Route path="ai/image-generator" element={<AIImageGenerator />} />
                                 <Route path="ai/analytics" element={<SuperAdminAnalytics />} />
+
+                                {/* Super Admin Whitelabel Routes */}
+                                <Route path="whitelabel/tenants" element={<Branding />} />
+                                <Route path="whitelabel/platform" element={<Branding />} />
+                                <Route path="whitelabel/themes" element={<Themes />} />
+                                <Route path="whitelabel/domains" element={<DomainSettings />} />
+                                <Route path="whitelabel/templates" element={<CustomPages />} />
+
+                                {/* Super Admin API Routes */}
+                                <Route path="api/gateway" element={<Integrations />} />
+                                <Route path="api/keys" element={<ApiKeys />} />
+                                <Route path="api/rate-limits" element={<ApiDocumentation />} />
+                                <Route path="api/docs" element={<ApiDocumentation />} />
+                                <Route path="api/webhooks" element={<Webhooks />} />
+                                <Route path="api/integrations" element={<Integrations />} />
                             </Route>
 
                             {/* 404 */}
