@@ -30,20 +30,57 @@ export const AuthProvider = ({ children }) => {
             const token = localStorage.getItem('accessToken');
             const adminToken = localStorage.getItem('adminAccessToken');
 
+            // Check user auth
             if (token) {
-                const response = await api.get('/auth/me');
-                setUser(response.data.data);
+                try {
+                    const response = await api.get('/auth/me');
+                    setUser(response.data.data);
+                } catch (userError) {
+                    console.error('User auth check failed:', userError);
+                    // Try to use cached user data from localStorage as fallback
+                    const cachedUser = localStorage.getItem('user');
+                    if (cachedUser) {
+                        try {
+                            setUser(JSON.parse(cachedUser));
+                        } catch (e) {
+                            localStorage.removeItem('accessToken');
+                            localStorage.removeItem('refreshToken');
+                            localStorage.removeItem('user');
+                        }
+                    } else {
+                        localStorage.removeItem('accessToken');
+                        localStorage.removeItem('refreshToken');
+                    }
+                }
             }
 
+            // Check admin auth separately
             if (adminToken) {
-                const response = await api.get('/admin/auth/me', {
-                    headers: { Authorization: `Bearer ${adminToken}` }
-                });
-                setAdmin(response.data.data);
+                try {
+                    const response = await api.get('/admin/auth/me', {
+                        headers: { Authorization: `Bearer ${adminToken}` }
+                    });
+                    setAdmin(response.data.data);
+                } catch (adminError) {
+                    console.error('Admin auth check failed:', adminError);
+                    // Try to use cached admin data as fallback
+                    const cachedAdmin = localStorage.getItem('admin');
+                    if (cachedAdmin) {
+                        try {
+                            setAdmin(JSON.parse(cachedAdmin));
+                        } catch (e) {
+                            localStorage.removeItem('adminAccessToken');
+                            localStorage.removeItem('adminRefreshToken');
+                            localStorage.removeItem('admin');
+                        }
+                    } else {
+                        localStorage.removeItem('adminAccessToken');
+                        localStorage.removeItem('adminRefreshToken');
+                    }
+                }
             }
         } catch (error) {
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('adminAccessToken');
+            console.error('Auth check error:', error);
         } finally {
             setLoading(false);
         }

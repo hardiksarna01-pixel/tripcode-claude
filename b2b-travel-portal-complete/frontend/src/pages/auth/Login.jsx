@@ -57,6 +57,14 @@ const Login = () => {
         setError('');
 
         try {
+            // Clear any old auth data first
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('user');
+            localStorage.removeItem('adminAccessToken');
+            localStorage.removeItem('adminRefreshToken');
+            localStorage.removeItem('admin');
+
             const loginData = {
                 email: formData.email,
                 password: formData.password
@@ -66,6 +74,8 @@ const Login = () => {
 
             if (response.data.success && response.data.data) {
                 const { user, accessToken, refreshToken } = response.data.data;
+
+                // Store auth data
                 localStorage.setItem('accessToken', accessToken);
                 localStorage.setItem('refreshToken', refreshToken);
                 localStorage.setItem('user', JSON.stringify(user));
@@ -76,9 +86,12 @@ const Login = () => {
                 } else {
                     window.location.href = '/my/dashboard';
                 }
+            } else {
+                setError('Login failed. Invalid response from server.');
             }
         } catch (err) {
-            setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+            console.error('Login error:', err);
+            setError(err.response?.data?.error?.message || err.response?.data?.message || 'Login failed. Please check your credentials.');
         } finally {
             setLoading(false);
         }
