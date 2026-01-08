@@ -1,56 +1,46 @@
 import React, { useState, useEffect } from 'react';
 import {
-    Box, Typography, Paper, Grid, Card, CardContent, Tabs, Tab, Table, TableBody,
-    TableCell, TableContainer, TableHead, TableRow, Chip, Button, IconButton,
-    Dialog, DialogTitle, DialogContent, DialogActions, TextField, Select, MenuItem,
-    FormControl, InputLabel, Alert, LinearProgress, Tooltip, Divider, Badge,
-    List, ListItem, ListItemText, ListItemIcon, Avatar, InputAdornment, Collapse
-} from '@mui/material';
-import {
-    Warning as WarningIcon,
-    Error as ErrorIcon,
-    CheckCircle as CheckIcon,
-    Refresh as RefreshIcon,
-    Edit as EditIcon,
-    SwapHoriz as SwapIcon,
-    Cancel as CancelIcon,
-    AccountBalance as BalanceIcon,
-    Flight as FlightIcon,
-    Hotel as HotelIcon,
-    DirectionsBus as BusIcon,
-    Person as PersonIcon,
-    Schedule as ScheduleIcon,
-    AttachMoney as MoneyIcon,
-    TrendingUp as TrendingIcon,
-    Replay as RetryIcon,
-    History as HistoryIcon,
-    ExpandMore as ExpandMoreIcon,
-    ExpandLess as ExpandLessIcon,
-    Business as BusinessIcon,
-    LocalShipping as SupplierIcon
-} from '@mui/icons-material';
-import adminService from '../../services/adminService';
+    ExclamationTriangleIcon,
+    CheckCircleIcon,
+    XCircleIcon,
+    ArrowPathIcon,
+    PencilIcon,
+    ArrowsRightLeftIcon,
+    WalletIcon,
+    ClockIcon,
+    PaperAirplaneIcon,
+    BuildingOfficeIcon,
+    TruckIcon,
+    UserIcon,
+    CurrencyRupeeIcon,
+    ChevronDownIcon,
+    ChevronUpIcon,
+    XMarkIcon,
+    PlusIcon,
+    MinusIcon
+} from '@heroicons/react/24/outline';
+import api from '../../services/api';
 
 const PendingBookings = () => {
-    const [activeTab, setActiveTab] = useState(0);
+    const [activeTab, setActiveTab] = useState('overview');
     const [loading, setLoading] = useState(true);
     const [overview, setOverview] = useState(null);
     const [pendingBookings, setPendingBookings] = useState([]);
     const [supplierBalances, setSupplierBalances] = useState([]);
     const [processedBookings, setProcessedBookings] = useState([]);
+    const [expandedBooking, setExpandedBooking] = useState(null);
 
-    // Dialogs
-    const [pnrDialog, setPnrDialog] = useState({ open: false, booking: null });
-    const [rebookDialog, setRebookDialog] = useState({ open: false, booking: null });
-    const [cancelDialog, setCancelDialog] = useState({ open: false, booking: null });
-    const [topUpDialog, setTopUpDialog] = useState({ open: false, supplier: null });
-    const [detailsExpanded, setDetailsExpanded] = useState({});
+    // Modal states
+    const [pnrModal, setPnrModal] = useState({ open: false, booking: null });
+    const [rebookModal, setRebookModal] = useState({ open: false, booking: null });
+    const [cancelModal, setCancelModal] = useState({ open: false, booking: null });
+    const [topUpModal, setTopUpModal] = useState({ open: false, supplier: null });
 
     // Form states
     const [pnrForm, setPnrForm] = useState({ pnr: '', remarks: '' });
     const [rebookForm, setRebookForm] = useState({ supplierId: '', notes: '' });
     const [cancelForm, setCancelForm] = useState({ reason: '', refundToWallet: true });
-    const [topUpForm, setTopUpForm] = useState({ amount: 0, type: 'credit', reference: '' });
+    const [topUpForm, setTopUpForm] = useState({ amount: '', type: 'credit', reference: '' });
 
     useEffect(() => {
         fetchData();
@@ -59,7 +49,7 @@ const PendingBookings = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            // Mock data for now - in production, fetch from API
+            // Mock data - in production, fetch from API
             setOverview({
                 totalPending: 5,
                 byStatus: { pending_supplier: 4, manual_update_required: 1 },
@@ -233,798 +223,845 @@ const PendingBookings = () => {
         }
     };
 
+    const formatCurrency = (amount) => {
+        return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
+    };
+
     const getTypeIcon = (type) => {
         switch (type) {
-            case 'flight': return <FlightIcon />;
-            case 'hotel': return <HotelIcon />;
-            case 'bus': return <BusIcon />;
-            default: return <FlightIcon />;
+            case 'flight': return <PaperAirplaneIcon className="h-5 w-5" />;
+            case 'hotel': return <BuildingOfficeIcon className="h-5 w-5" />;
+            case 'bus': return <TruckIcon className="h-5 w-5" />;
+            default: return <PaperAirplaneIcon className="h-5 w-5" />;
         }
     };
 
-    const getStatusColor = (status) => {
-        switch (status) {
-            case 'healthy': return 'success';
-            case 'warning': return 'warning';
-            case 'low': return 'warning';
-            case 'critical': return 'error';
-            case 'pending_supplier': return 'warning';
-            case 'manual_update_required': return 'info';
-            case 'rebooked': return 'success';
-            case 'confirmed': return 'success';
-            case 'cancelled': return 'error';
-            default: return 'default';
-        }
+    const getStatusBadge = (status) => {
+        const styles = {
+            healthy: 'bg-green-100 text-green-800',
+            warning: 'bg-yellow-100 text-yellow-800',
+            low: 'bg-orange-100 text-orange-800',
+            critical: 'bg-red-100 text-red-800',
+            pending_supplier: 'bg-yellow-100 text-yellow-800',
+            manual_update_required: 'bg-blue-100 text-blue-800',
+            rebooked: 'bg-green-100 text-green-800',
+            confirmed: 'bg-green-100 text-green-800',
+            cancelled: 'bg-red-100 text-red-800'
+        };
+        return styles[status] || 'bg-gray-100 text-gray-800';
     };
 
-    const formatCurrency = (amount) => {
-        return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount);
-    };
-
-    const handleUpdatePNR = async () => {
-        // In production, call API
+    const handleUpdatePNR = () => {
         console.log('Updating PNR:', pnrForm);
-        setPnrDialog({ open: false, booking: null });
+        setPnrModal({ open: false, booking: null });
         setPnrForm({ pnr: '', remarks: '' });
         fetchData();
     };
 
-    const handleRebook = async () => {
-        // In production, call API
+    const handleRebook = () => {
         console.log('Rebooking:', rebookForm);
-        setRebookDialog({ open: false, booking: null });
+        setRebookModal({ open: false, booking: null });
         setRebookForm({ supplierId: '', notes: '' });
         fetchData();
     };
 
-    const handleCancel = async () => {
-        // In production, call API
+    const handleCancel = () => {
         console.log('Cancelling:', cancelForm);
-        setCancelDialog({ open: false, booking: null });
+        setCancelModal({ open: false, booking: null });
         setCancelForm({ reason: '', refundToWallet: true });
         fetchData();
     };
 
-    const handleTopUp = async () => {
-        // In production, call API
+    const handleTopUp = () => {
         console.log('Top up:', topUpForm);
-        setTopUpDialog({ open: false, supplier: null });
-        setTopUpForm({ amount: 0, type: 'credit', reference: '' });
+        setTopUpModal({ open: false, supplier: null });
+        setTopUpForm({ amount: '', type: 'credit', reference: '' });
         fetchData();
     };
 
-    const handleRetry = async (booking) => {
-        // In production, call API to retry booking
+    const handleRetry = (booking) => {
         console.log('Retrying booking:', booking.id);
         alert('Retry initiated for booking: ' + booking.bookingRef);
         fetchData();
     };
 
-    const toggleDetails = (id) => {
-        setDetailsExpanded(prev => ({ ...prev, [id]: !prev[id] }));
-    };
-
-    // Overview Tab
+    // Tab Content Components
     const OverviewTab = () => (
-        <Grid container spacing={3}>
-            {/* Summary Cards */}
-            <Grid item xs={12} md={3}>
-                <Card sx={{ bgcolor: '#fff3e0' }}>
-                    <CardContent>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <Box>
-                                <Typography variant="h4" fontWeight="bold" color="warning.dark">
-                                    {overview?.totalPending || 0}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    Pending Bookings
-                                </Typography>
-                            </Box>
-                            <WarningIcon sx={{ fontSize: 48, color: 'warning.main', opacity: 0.5 }} />
-                        </Box>
-                    </CardContent>
-                </Card>
-            </Grid>
+        <div className="space-y-6">
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-3xl font-bold text-orange-700">{overview?.totalPending || 0}</p>
+                            <p className="text-sm text-gray-600">Pending Bookings</p>
+                        </div>
+                        <ExclamationTriangleIcon className="h-12 w-12 text-orange-400" />
+                    </div>
+                </div>
 
-            <Grid item xs={12} md={3}>
-                <Card sx={{ bgcolor: '#ffebee' }}>
-                    <CardContent>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <Box>
-                                <Typography variant="h4" fontWeight="bold" color="error.dark">
-                                    {formatCurrency(overview?.totalShortfall || 0)}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    Total Shortfall
-                                </Typography>
-                            </Box>
-                            <MoneyIcon sx={{ fontSize: 48, color: 'error.main', opacity: 0.5 }} />
-                        </Box>
-                    </CardContent>
-                </Card>
-            </Grid>
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-3xl font-bold text-red-700">{formatCurrency(overview?.totalShortfall || 0)}</p>
+                            <p className="text-sm text-gray-600">Total Shortfall</p>
+                        </div>
+                        <CurrencyRupeeIcon className="h-12 w-12 text-red-400" />
+                    </div>
+                </div>
 
-            <Grid item xs={12} md={3}>
-                <Card sx={{ bgcolor: '#e3f2fd' }}>
-                    <CardContent>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <Box>
-                                <Typography variant="h4" fontWeight="bold" color="info.dark">
-                                    {overview?.byStatus?.manual_update_required || 0}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    Manual PNR Updates
-                                </Typography>
-                            </Box>
-                            <EditIcon sx={{ fontSize: 48, color: 'info.main', opacity: 0.5 }} />
-                        </Box>
-                    </CardContent>
-                </Card>
-            </Grid>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-3xl font-bold text-blue-700">{overview?.byStatus?.manual_update_required || 0}</p>
+                            <p className="text-sm text-gray-600">Manual PNR Updates</p>
+                        </div>
+                        <PencilIcon className="h-12 w-12 text-blue-400" />
+                    </div>
+                </div>
 
-            <Grid item xs={12} md={3}>
-                <Card sx={{ bgcolor: '#fce4ec' }}>
-                    <CardContent>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <Box>
-                                <Typography variant="h4" fontWeight="bold" color="error.dark">
-                                    {overview?.criticalSuppliers?.length || 0}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    Critical Suppliers
-                                </Typography>
-                            </Box>
-                            <ErrorIcon sx={{ fontSize: 48, color: 'error.main', opacity: 0.5 }} />
-                        </Box>
-                    </CardContent>
-                </Card>
-            </Grid>
+                <div className="bg-pink-50 border border-pink-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-3xl font-bold text-pink-700">{overview?.criticalSuppliers?.length || 0}</p>
+                            <p className="text-sm text-gray-600">Critical Suppliers</p>
+                        </div>
+                        <XCircleIcon className="h-12 w-12 text-pink-400" />
+                    </div>
+                </div>
+            </div>
 
             {/* Critical Suppliers Alert */}
             {overview?.criticalSuppliers?.length > 0 && (
-                <Grid item xs={12}>
-                    <Alert severity="error" icon={<WarningIcon />}>
-                        <Typography variant="subtitle1" fontWeight="bold">
-                            Critical Supplier Balance Alert
-                        </Typography>
-                        <Typography variant="body2">
-                            {overview.criticalSuppliers.map(s =>
-                                `${s.id.charAt(0).toUpperCase() + s.id.slice(1)}: ${formatCurrency(s.balance)} (Threshold: ${formatCurrency(s.threshold)})`
-                            ).join(' | ')}
-                        </Typography>
-                    </Alert>
-                </Grid>
+                <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg">
+                    <div className="flex items-center">
+                        <ExclamationTriangleIcon className="h-6 w-6 text-red-500 mr-3" />
+                        <div>
+                            <h4 className="font-semibold text-red-800">Critical Supplier Balance Alert</h4>
+                            <p className="text-sm text-red-700">
+                                {overview.criticalSuppliers.map(s =>
+                                    `${s.id.charAt(0).toUpperCase() + s.id.slice(1)}: ${formatCurrency(s.balance)} (Threshold: ${formatCurrency(s.threshold)})`
+                                ).join(' | ')}
+                            </p>
+                        </div>
+                    </div>
+                </div>
             )}
 
-            {/* Pending by Type */}
-            <Grid item xs={12} md={6}>
-                <Paper sx={{ p: 3 }}>
-                    <Typography variant="h6" gutterBottom>Pending by Product Type</Typography>
-                    <List>
-                        <ListItem>
-                            <ListItemIcon><FlightIcon color="primary" /></ListItemIcon>
-                            <ListItemText primary="Flights" secondary={`${overview?.byType?.flight || 0} pending`} />
-                        </ListItem>
-                        <ListItem>
-                            <ListItemIcon><HotelIcon color="secondary" /></ListItemIcon>
-                            <ListItemText primary="Hotels" secondary={`${overview?.byType?.hotel || 0} pending`} />
-                        </ListItem>
-                        <ListItem>
-                            <ListItemIcon><BusIcon color="success" /></ListItemIcon>
-                            <ListItemText primary="Bus" secondary={`${overview?.byType?.bus || 0} pending`} />
-                        </ListItem>
-                    </List>
-                </Paper>
-            </Grid>
+            {/* Quick Stats & Actions */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="bg-white border rounded-lg p-6">
+                    <h3 className="text-lg font-semibold mb-4">Pending by Product Type</h3>
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                            <div className="flex items-center gap-3">
+                                <PaperAirplaneIcon className="h-5 w-5 text-blue-600" />
+                                <span>Flights</span>
+                            </div>
+                            <span className="font-semibold">{overview?.byType?.flight || 0} pending</span>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                            <div className="flex items-center gap-3">
+                                <BuildingOfficeIcon className="h-5 w-5 text-purple-600" />
+                                <span>Hotels</span>
+                            </div>
+                            <span className="font-semibold">{overview?.byType?.hotel || 0} pending</span>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                            <div className="flex items-center gap-3">
+                                <TruckIcon className="h-5 w-5 text-green-600" />
+                                <span>Bus</span>
+                            </div>
+                            <span className="font-semibold">{overview?.byType?.bus || 0} pending</span>
+                        </div>
+                    </div>
+                </div>
 
-            {/* Quick Actions */}
-            <Grid item xs={12} md={6}>
-                <Paper sx={{ p: 3 }}>
-                    <Typography variant="h6" gutterBottom>Quick Actions</Typography>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            startIcon={<RetryIcon />}
+                <div className="bg-white border rounded-lg p-6">
+                    <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
+                    <div className="space-y-3">
+                        <button
                             onClick={() => alert('Bulk retry initiated for eligible bookings')}
+                            className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition"
                         >
+                            <ArrowPathIcon className="h-5 w-5" />
                             Bulk Retry Eligible Bookings
-                        </Button>
-                        <Button
-                            variant="outlined"
-                            color="warning"
-                            startIcon={<BalanceIcon />}
-                            onClick={() => setActiveTab(2)}
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('balances')}
+                            className="w-full flex items-center justify-center gap-2 border border-orange-500 text-orange-600 px-4 py-3 rounded-lg hover:bg-orange-50 transition"
                         >
+                            <WalletIcon className="h-5 w-5" />
                             Top-Up Supplier Balances
-                        </Button>
-                        <Button
-                            variant="outlined"
-                            startIcon={<HistoryIcon />}
-                            onClick={() => setActiveTab(3)}
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('history')}
+                            className="w-full flex items-center justify-center gap-2 border border-gray-300 text-gray-700 px-4 py-3 rounded-lg hover:bg-gray-50 transition"
                         >
+                            <ClockIcon className="h-5 w-5" />
                             View Processed History
-                        </Button>
-                    </Box>
-                </Paper>
-            </Grid>
-        </Grid>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 
-    // Pending Bookings Tab
     const PendingBookingsTab = () => (
-        <Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h6">Pending Bookings ({pendingBookings.length})</Typography>
-                <Button startIcon={<RefreshIcon />} onClick={fetchData}>Refresh</Button>
-            </Box>
+        <div className="space-y-4">
+            <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold">Pending Bookings ({pendingBookings.length})</h3>
+                <button onClick={fetchData} className="flex items-center gap-2 text-blue-600 hover:text-blue-800">
+                    <ArrowPathIcon className="h-5 w-5" />
+                    Refresh
+                </button>
+            </div>
 
             {pendingBookings.map((booking) => (
-                <Card key={booking.id} sx={{ mb: 2, border: booking.shortfall > 0 ? '2px solid #f44336' : '1px solid #e0e0e0' }}>
-                    <CardContent>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                                <Avatar sx={{ bgcolor: booking.type === 'flight' ? 'primary.main' : booking.type === 'hotel' ? 'secondary.main' : 'success.main' }}>
-                                    {getTypeIcon(booking.type)}
-                                </Avatar>
-                                <Box>
-                                    <Typography variant="h6">{booking.bookingRef}</Typography>
-                                    <Typography variant="body2" color="text.secondary">
-                                        {booking.customer.name} | {booking.agentName}
-                                    </Typography>
-                                </Box>
-                            </Box>
-                            <Box sx={{ textAlign: 'right' }}>
-                                <Chip
-                                    label={booking.status.replace('_', ' ').toUpperCase()}
-                                    color={getStatusColor(booking.status)}
-                                    size="small"
-                                />
-                                <Typography variant="h6" sx={{ mt: 1 }}>{formatCurrency(booking.amount)}</Typography>
-                            </Box>
-                        </Box>
+                <div
+                    key={booking.id}
+                    className={`bg-white border rounded-lg p-4 ${booking.shortfall > 0 ? 'border-red-300 border-2' : ''}`}
+                >
+                    {/* Header */}
+                    <div className="flex justify-between items-start mb-4">
+                        <div className="flex items-center gap-3">
+                            <div className={`p-2 rounded-lg ${booking.type === 'flight' ? 'bg-blue-100' : booking.type === 'hotel' ? 'bg-purple-100' : 'bg-green-100'}`}>
+                                {getTypeIcon(booking.type)}
+                            </div>
+                            <div>
+                                <h4 className="font-semibold text-lg">{booking.bookingRef}</h4>
+                                <p className="text-sm text-gray-600">{booking.customer.name} | {booking.agentName}</p>
+                            </div>
+                        </div>
+                        <div className="text-right">
+                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(booking.status)}`}>
+                                {booking.status.replace(/_/g, ' ').toUpperCase()}
+                            </span>
+                            <p className="text-xl font-bold mt-2">{formatCurrency(booking.amount)}</p>
+                        </div>
+                    </div>
 
-                        <Divider sx={{ my: 2 }} />
+                    {/* Trip Details */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 p-4 bg-gray-50 rounded-lg">
+                        <div>
+                            <p className="text-xs text-gray-500 uppercase font-medium mb-1">Trip Details</p>
+                            {booking.type === 'flight' && (
+                                <div className="text-sm">
+                                    <p className="font-medium">{booking.tripDetails.from} → {booking.tripDetails.to}</p>
+                                    <p>{booking.tripDetails.airline} {booking.tripDetails.flightNo}</p>
+                                    <p>{booking.tripDetails.date} | {booking.tripDetails.passengers} Pax | {booking.tripDetails.class}</p>
+                                </div>
+                            )}
+                            {booking.type === 'hotel' && (
+                                <div className="text-sm">
+                                    <p className="font-medium">{booking.tripDetails.hotel}</p>
+                                    <p>{booking.tripDetails.city}</p>
+                                    <p>{booking.tripDetails.checkIn} to {booking.tripDetails.checkOut}</p>
+                                    <p>{booking.tripDetails.rooms} Rooms | {booking.tripDetails.guests} Guests</p>
+                                </div>
+                            )}
+                            {booking.type === 'bus' && (
+                                <div className="text-sm">
+                                    <p className="font-medium">{booking.tripDetails.from} → {booking.tripDetails.to}</p>
+                                    <p>{booking.tripDetails.operator}</p>
+                                    <p>{booking.tripDetails.date} | {booking.tripDetails.busType}</p>
+                                    <p>{booking.tripDetails.seats} Seats</p>
+                                </div>
+                            )}
+                        </div>
 
-                        <Grid container spacing={2}>
-                            <Grid item xs={12} md={4}>
-                                <Typography variant="subtitle2" color="text.secondary">Trip Details</Typography>
-                                {booking.type === 'flight' && (
-                                    <Typography>
-                                        {booking.tripDetails.from} → {booking.tripDetails.to}<br />
-                                        {booking.tripDetails.airline} {booking.tripDetails.flightNo}<br />
-                                        {booking.tripDetails.date} | {booking.tripDetails.passengers} Pax | {booking.tripDetails.class}
-                                    </Typography>
-                                )}
-                                {booking.type === 'hotel' && (
-                                    <Typography>
-                                        {booking.tripDetails.hotel}<br />
-                                        {booking.tripDetails.city}<br />
-                                        {booking.tripDetails.checkIn} to {booking.tripDetails.checkOut}<br />
-                                        {booking.tripDetails.rooms} Rooms | {booking.tripDetails.guests} Guests
-                                    </Typography>
-                                )}
-                                {booking.type === 'bus' && (
-                                    <Typography>
-                                        {booking.tripDetails.from} → {booking.tripDetails.to}<br />
-                                        {booking.tripDetails.operator}<br />
-                                        {booking.tripDetails.date} | {booking.tripDetails.busType}<br />
-                                        {booking.tripDetails.seats} Seats
-                                    </Typography>
-                                )}
-                            </Grid>
+                        <div>
+                            <p className="text-xs text-gray-500 uppercase font-medium mb-1">Supplier Status</p>
+                            <div className="flex items-center gap-2">
+                                <span className="font-medium capitalize">{booking.originalSupplier}</span>
+                                <span className={`px-2 py-0.5 rounded text-xs ${getStatusBadge(booking.supplierStatus)}`}>
+                                    {booking.supplierStatus}
+                                </span>
+                            </div>
+                            {booking.shortfall > 0 && (
+                                <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-sm">
+                                    <p>Required: {formatCurrency(booking.requiredAmount)}</p>
+                                    <p>Available: {formatCurrency(booking.availableBalance)}</p>
+                                    <p className="font-semibold text-red-700">Shortfall: {formatCurrency(booking.shortfall)}</p>
+                                </div>
+                            )}
+                        </div>
 
-                            <Grid item xs={12} md={4}>
-                                <Typography variant="subtitle2" color="text.secondary">Supplier Status</Typography>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
-                                    <SupplierIcon />
-                                    <Typography fontWeight="bold">
-                                        {booking.originalSupplier.charAt(0).toUpperCase() + booking.originalSupplier.slice(1)}
-                                    </Typography>
-                                    <Chip label={booking.supplierStatus} color={getStatusColor(booking.supplierStatus)} size="small" />
-                                </Box>
-                                {booking.shortfall > 0 && (
-                                    <Alert severity="error" sx={{ mt: 1 }}>
-                                        <Typography variant="body2">
-                                            Required: {formatCurrency(booking.requiredAmount)}<br />
-                                            Available: {formatCurrency(booking.availableBalance)}<br />
-                                            <strong>Shortfall: {formatCurrency(booking.shortfall)}</strong>
-                                        </Typography>
-                                    </Alert>
-                                )}
-                            </Grid>
+                        <div>
+                            <p className="text-xs text-gray-500 uppercase font-medium mb-1">PNR</p>
+                            {booking.pnr ? (
+                                <p className="text-2xl font-bold text-blue-600">{booking.pnr}</p>
+                            ) : (
+                                <span className="inline-block px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">
+                                    Not Generated
+                                </span>
+                            )}
+                            <p className="text-xs text-gray-500 mt-2">
+                                Created: {new Date(booking.createdAt).toLocaleString()}
+                            </p>
+                        </div>
+                    </div>
 
-                            <Grid item xs={12} md={4}>
-                                <Typography variant="subtitle2" color="text.secondary">PNR</Typography>
-                                <Typography variant="h5" sx={{ mt: 1 }}>
-                                    {booking.pnr || <Chip label="Not Generated" color="warning" />}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                                    Created: {new Date(booking.createdAt).toLocaleString()}
-                                </Typography>
-                            </Grid>
-                        </Grid>
+                    {/* Alternative Suppliers */}
+                    {booking.alternativeSuppliers?.length > 0 && (
+                        <div className="mb-4">
+                            <button
+                                onClick={() => setExpandedBooking(expandedBooking === booking.id ? null : booking.id)}
+                                className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800"
+                            >
+                                {expandedBooking === booking.id ? <ChevronUpIcon className="h-4 w-4" /> : <ChevronDownIcon className="h-4 w-4" />}
+                                Alternative Suppliers ({booking.alternativeSuppliers.length})
+                            </button>
 
-                        {/* Alternative Suppliers */}
+                            {expandedBooking === booking.id && (
+                                <div className="mt-2 overflow-x-auto">
+                                    <table className="min-w-full text-sm">
+                                        <thead>
+                                            <tr className="bg-gray-100">
+                                                <th className="px-4 py-2 text-left">Supplier</th>
+                                                <th className="px-4 py-2 text-left">Price</th>
+                                                <th className="px-4 py-2 text-left">Availability</th>
+                                                <th className="px-4 py-2 text-left">Price Diff</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {booking.alternativeSuppliers.map((alt) => (
+                                                <tr key={alt.id} className="border-b">
+                                                    <td className="px-4 py-2">{alt.name}</td>
+                                                    <td className="px-4 py-2">{formatCurrency(alt.price)}</td>
+                                                    <td className="px-4 py-2">
+                                                        <span className={`px-2 py-0.5 rounded text-xs ${alt.available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                                            {alt.available ? 'Available' : 'Unavailable'}
+                                                        </span>
+                                                    </td>
+                                                    <td className={`px-4 py-2 ${alt.price > booking.amount ? 'text-red-600' : 'text-green-600'}`}>
+                                                        {alt.price > booking.amount ? '+' : ''}{formatCurrency(alt.price - booking.amount)}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Actions */}
+                    <div className="flex flex-wrap gap-2 pt-4 border-t">
+                        <button
+                            onClick={() => {
+                                setPnrForm({ pnr: booking.pnr || '', remarks: '' });
+                                setPnrModal({ open: true, booking });
+                            }}
+                            className="flex items-center gap-1 bg-blue-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-700"
+                        >
+                            <PencilIcon className="h-4 w-4" />
+                            Update PNR
+                        </button>
+
                         {booking.alternativeSuppliers?.length > 0 && (
-                            <Box sx={{ mt: 2 }}>
-                                <Button
-                                    size="small"
-                                    onClick={() => toggleDetails(booking.id)}
-                                    endIcon={detailsExpanded[booking.id] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                                >
-                                    Alternative Suppliers ({booking.alternativeSuppliers.length})
-                                </Button>
-                                <Collapse in={detailsExpanded[booking.id]}>
-                                    <TableContainer sx={{ mt: 1 }}>
-                                        <Table size="small">
-                                            <TableHead>
-                                                <TableRow>
-                                                    <TableCell>Supplier</TableCell>
-                                                    <TableCell>Price</TableCell>
-                                                    <TableCell>Availability</TableCell>
-                                                    <TableCell>Price Diff</TableCell>
-                                                </TableRow>
-                                            </TableHead>
-                                            <TableBody>
-                                                {booking.alternativeSuppliers.map((alt) => (
-                                                    <TableRow key={alt.id}>
-                                                        <TableCell>{alt.name}</TableCell>
-                                                        <TableCell>{formatCurrency(alt.price)}</TableCell>
-                                                        <TableCell>
-                                                            <Chip
-                                                                label={alt.available ? 'Available' : 'Unavailable'}
-                                                                color={alt.available ? 'success' : 'error'}
-                                                                size="small"
-                                                            />
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <Typography color={alt.price > booking.amount ? 'error' : 'success'}>
-                                                                {alt.price > booking.amount ? '+' : ''}{formatCurrency(alt.price - booking.amount)}
-                                                            </Typography>
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ))}
-                                            </TableBody>
-                                        </Table>
-                                    </TableContainer>
-                                </Collapse>
-                            </Box>
+                            <button
+                                onClick={() => {
+                                    setRebookForm({ supplierId: '', notes: '' });
+                                    setRebookModal({ open: true, booking });
+                                }}
+                                className="flex items-center gap-1 bg-purple-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-purple-700"
+                            >
+                                <ArrowsRightLeftIcon className="h-4 w-4" />
+                                Rebook with Other Supplier
+                            </button>
                         )}
 
-                        {/* Actions */}
-                        <Divider sx={{ my: 2 }} />
-                        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                            <Button
-                                variant="contained"
-                                size="small"
-                                startIcon={<EditIcon />}
-                                onClick={() => {
-                                    setPnrForm({ pnr: booking.pnr || '', remarks: '' });
-                                    setPnrDialog({ open: true, booking });
-                                }}
+                        {booking.shortfall === 0 && (
+                            <button
+                                onClick={() => handleRetry(booking)}
+                                className="flex items-center gap-1 border border-green-500 text-green-600 px-3 py-2 rounded-lg text-sm hover:bg-green-50"
                             >
-                                Update PNR
-                            </Button>
-                            {booking.alternativeSuppliers?.length > 0 && (
-                                <Button
-                                    variant="contained"
-                                    color="secondary"
-                                    size="small"
-                                    startIcon={<SwapIcon />}
-                                    onClick={() => {
-                                        setRebookForm({ supplierId: '', notes: '' });
-                                        setRebookDialog({ open: true, booking });
-                                    }}
-                                >
-                                    Rebook with Other Supplier
-                                </Button>
-                            )}
-                            {booking.shortfall === 0 && (
-                                <Button
-                                    variant="outlined"
-                                    color="success"
-                                    size="small"
-                                    startIcon={<RetryIcon />}
-                                    onClick={() => handleRetry(booking)}
-                                >
-                                    Retry Booking
-                                </Button>
-                            )}
-                            <Button
-                                variant="outlined"
-                                color="error"
-                                size="small"
-                                startIcon={<CancelIcon />}
-                                onClick={() => {
-                                    setCancelForm({ reason: '', refundToWallet: true });
-                                    setCancelDialog({ open: true, booking });
-                                }}
-                            >
-                                Cancel Booking
-                            </Button>
-                        </Box>
-                    </CardContent>
-                </Card>
+                                <ArrowPathIcon className="h-4 w-4" />
+                                Retry Booking
+                            </button>
+                        )}
+
+                        <button
+                            onClick={() => {
+                                setCancelForm({ reason: '', refundToWallet: true });
+                                setCancelModal({ open: true, booking });
+                            }}
+                            className="flex items-center gap-1 border border-red-500 text-red-600 px-3 py-2 rounded-lg text-sm hover:bg-red-50"
+                        >
+                            <XCircleIcon className="h-4 w-4" />
+                            Cancel Booking
+                        </button>
+                    </div>
+                </div>
             ))}
-        </Box>
+        </div>
     );
 
-    // Supplier Balances Tab
     const SupplierBalancesTab = () => (
-        <Box>
-            <Typography variant="h6" gutterBottom>Supplier Balances</Typography>
-            <Alert severity="info" sx={{ mb: 2 }}>
-                Monitor supplier credit balances. Top-up suppliers with low balance to process pending bookings.
-            </Alert>
+        <div className="space-y-6">
+            <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold">Supplier Balances</h3>
+            </div>
 
-            <TableContainer component={Paper}>
-                <Table>
-                    <TableHead>
-                        <TableRow sx={{ bgcolor: 'grey.100' }}>
-                            <TableCell>Supplier</TableCell>
-                            <TableCell align="right">Current Balance</TableCell>
-                            <TableCell align="right">Threshold</TableCell>
-                            <TableCell>Status</TableCell>
-                            <TableCell align="center">Pending Bookings</TableCell>
-                            <TableCell align="center">Actions</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-blue-800">
+                    Monitor supplier credit balances. Top-up suppliers with low balance to process pending bookings.
+                </p>
+            </div>
+
+            <div className="overflow-x-auto">
+                <table className="min-w-full bg-white border rounded-lg">
+                    <thead>
+                        <tr className="bg-gray-100">
+                            <th className="px-4 py-3 text-left text-sm font-semibold">Supplier</th>
+                            <th className="px-4 py-3 text-right text-sm font-semibold">Current Balance</th>
+                            <th className="px-4 py-3 text-right text-sm font-semibold">Threshold</th>
+                            <th className="px-4 py-3 text-center text-sm font-semibold">Status</th>
+                            <th className="px-4 py-3 text-center text-sm font-semibold">Pending</th>
+                            <th className="px-4 py-3 text-center text-sm font-semibold">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
                         {supplierBalances.map((supplier) => (
-                            <TableRow key={supplier.id} sx={{ bgcolor: supplier.status === 'critical' ? '#ffebee' : supplier.status === 'low' ? '#fff8e1' : 'inherit' }}>
-                                <TableCell>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                        <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: 12 }}>
+                            <tr
+                                key={supplier.id}
+                                className={`border-b ${supplier.status === 'critical' ? 'bg-red-50' : supplier.status === 'low' ? 'bg-yellow-50' : ''}`}
+                            >
+                                <td className="px-4 py-3">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-xs font-bold text-blue-700">
                                             {supplier.name.substring(0, 2).toUpperCase()}
-                                        </Avatar>
-                                        <Typography fontWeight="medium">{supplier.name}</Typography>
-                                    </Box>
-                                </TableCell>
-                                <TableCell align="right">
-                                    <Typography fontWeight="bold" color={supplier.status === 'critical' || supplier.status === 'low' ? 'error' : 'inherit'}>
-                                        {formatCurrency(supplier.balance)}
-                                    </Typography>
-                                </TableCell>
-                                <TableCell align="right">{formatCurrency(supplier.threshold)}</TableCell>
-                                <TableCell>
-                                    <Chip
-                                        label={supplier.status.charAt(0).toUpperCase() + supplier.status.slice(1)}
-                                        color={getStatusColor(supplier.status)}
-                                        size="small"
-                                    />
-                                </TableCell>
-                                <TableCell align="center">
-                                    <Badge badgeContent={supplier.pendingBookings} color="warning">
-                                        <ScheduleIcon />
-                                    </Badge>
-                                </TableCell>
-                                <TableCell align="center">
-                                    <Button
-                                        variant="outlined"
-                                        size="small"
-                                        startIcon={<TrendingIcon />}
+                                        </div>
+                                        <span className="font-medium">{supplier.name}</span>
+                                    </div>
+                                </td>
+                                <td className={`px-4 py-3 text-right font-bold ${supplier.status === 'critical' || supplier.status === 'low' ? 'text-red-600' : ''}`}>
+                                    {formatCurrency(supplier.balance)}
+                                </td>
+                                <td className="px-4 py-3 text-right text-gray-600">
+                                    {formatCurrency(supplier.threshold)}
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(supplier.status)}`}>
+                                        {supplier.status.charAt(0).toUpperCase() + supplier.status.slice(1)}
+                                    </span>
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                    {supplier.pendingBookings > 0 ? (
+                                        <span className="inline-flex items-center justify-center w-6 h-6 bg-orange-100 text-orange-800 rounded-full text-sm font-medium">
+                                            {supplier.pendingBookings}
+                                        </span>
+                                    ) : '-'}
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                    <button
                                         onClick={() => {
-                                            setTopUpForm({ amount: 0, type: 'credit', reference: '' });
-                                            setTopUpDialog({ open: true, supplier });
+                                            setTopUpForm({ amount: '', type: 'credit', reference: '' });
+                                            setTopUpModal({ open: true, supplier });
                                         }}
+                                        className="flex items-center gap-1 mx-auto border border-blue-500 text-blue-600 px-3 py-1 rounded text-sm hover:bg-blue-50"
                                     >
+                                        <PlusIcon className="h-4 w-4" />
                                         Top-Up
-                                    </Button>
-                                </TableCell>
-                            </TableRow>
+                                    </button>
+                                </td>
+                            </tr>
                         ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
+                    </tbody>
+                </table>
+            </div>
 
             {/* Balance Summary */}
-            <Paper sx={{ p: 3, mt: 3 }}>
-                <Typography variant="h6" gutterBottom>Balance Summary</Typography>
-                <Grid container spacing={2}>
-                    <Grid item xs={12} md={4}>
-                        <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'success.light', borderRadius: 2 }}>
-                            <Typography variant="h5" color="success.dark">
-                                {formatCurrency(supplierBalances.reduce((sum, s) => sum + s.balance, 0))}
-                            </Typography>
-                            <Typography variant="body2">Total Balance Across All Suppliers</Typography>
-                        </Box>
-                    </Grid>
-                    <Grid item xs={12} md={4}>
-                        <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'warning.light', borderRadius: 2 }}>
-                            <Typography variant="h5" color="warning.dark">
-                                {supplierBalances.filter(s => s.status === 'low' || s.status === 'warning').length}
-                            </Typography>
-                            <Typography variant="body2">Suppliers with Low Balance</Typography>
-                        </Box>
-                    </Grid>
-                    <Grid item xs={12} md={4}>
-                        <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'error.light', borderRadius: 2 }}>
-                            <Typography variant="h5" color="error.dark">
-                                {supplierBalances.filter(s => s.status === 'critical').length}
-                            </Typography>
-                            <Typography variant="body2">Critical Suppliers</Typography>
-                        </Box>
-                    </Grid>
-                </Grid>
-            </Paper>
-        </Box>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                    <p className="text-2xl font-bold text-green-700">
+                        {formatCurrency(supplierBalances.reduce((sum, s) => sum + s.balance, 0))}
+                    </p>
+                    <p className="text-sm text-gray-600">Total Balance Across All Suppliers</p>
+                </div>
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
+                    <p className="text-2xl font-bold text-yellow-700">
+                        {supplierBalances.filter(s => s.status === 'low' || s.status === 'warning').length}
+                    </p>
+                    <p className="text-sm text-gray-600">Suppliers with Low Balance</p>
+                </div>
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+                    <p className="text-2xl font-bold text-red-700">
+                        {supplierBalances.filter(s => s.status === 'critical').length}
+                    </p>
+                    <p className="text-sm text-gray-600">Critical Suppliers</p>
+                </div>
+            </div>
+        </div>
     );
 
-    // Processed History Tab
     const ProcessedHistoryTab = () => (
-        <Box>
-            <Typography variant="h6" gutterBottom>Processed Bookings History</Typography>
-            <TableContainer component={Paper}>
-                <Table>
-                    <TableHead>
-                        <TableRow sx={{ bgcolor: 'grey.100' }}>
-                            <TableCell>Booking Ref</TableCell>
-                            <TableCell>PNR</TableCell>
-                            <TableCell>Type</TableCell>
-                            <TableCell>Status</TableCell>
-                            <TableCell>Original Supplier</TableCell>
-                            <TableCell>New Supplier</TableCell>
-                            <TableCell>Processed By</TableCell>
-                            <TableCell>Processed At</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {processedBookings.map((booking) => (
-                            <TableRow key={booking.id}>
-                                <TableCell>{booking.bookingRef}</TableCell>
-                                <TableCell>
-                                    <Chip label={booking.pnr} size="small" color="primary" />
-                                </TableCell>
-                                <TableCell>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                        {getTypeIcon(booking.type)}
-                                        {booking.type.charAt(0).toUpperCase() + booking.type.slice(1)}
-                                    </Box>
-                                </TableCell>
-                                <TableCell>
-                                    <Chip label={booking.status} color={getStatusColor(booking.status)} size="small" />
-                                </TableCell>
-                                <TableCell>{booking.originalSupplier}</TableCell>
-                                <TableCell>{booking.newSupplier || '-'}</TableCell>
-                                <TableCell>{booking.processedBy}</TableCell>
-                                <TableCell>{new Date(booking.processedAt).toLocaleString()}</TableCell>
-                            </TableRow>
-                        ))}
-                        {processedBookings.length === 0 && (
-                            <TableRow>
-                                <TableCell colSpan={8} align="center">
-                                    <Typography color="text.secondary" sx={{ py: 4 }}>
-                                        No processed bookings yet
-                                    </Typography>
-                                </TableCell>
-                            </TableRow>
+        <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Processed Bookings History</h3>
+
+            <div className="overflow-x-auto">
+                <table className="min-w-full bg-white border rounded-lg">
+                    <thead>
+                        <tr className="bg-gray-100">
+                            <th className="px-4 py-3 text-left text-sm font-semibold">Booking Ref</th>
+                            <th className="px-4 py-3 text-left text-sm font-semibold">PNR</th>
+                            <th className="px-4 py-3 text-left text-sm font-semibold">Type</th>
+                            <th className="px-4 py-3 text-left text-sm font-semibold">Status</th>
+                            <th className="px-4 py-3 text-left text-sm font-semibold">Original</th>
+                            <th className="px-4 py-3 text-left text-sm font-semibold">New</th>
+                            <th className="px-4 py-3 text-left text-sm font-semibold">Processed By</th>
+                            <th className="px-4 py-3 text-left text-sm font-semibold">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {processedBookings.length > 0 ? (
+                            processedBookings.map((booking) => (
+                                <tr key={booking.id} className="border-b">
+                                    <td className="px-4 py-3 font-medium">{booking.bookingRef}</td>
+                                    <td className="px-4 py-3">
+                                        <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">
+                                            {booking.pnr}
+                                        </span>
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        <div className="flex items-center gap-2">
+                                            {getTypeIcon(booking.type)}
+                                            <span className="capitalize">{booking.type}</span>
+                                        </div>
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        <span className={`px-2 py-1 rounded text-xs ${getStatusBadge(booking.status)}`}>
+                                            {booking.status}
+                                        </span>
+                                    </td>
+                                    <td className="px-4 py-3 capitalize">{booking.originalSupplier}</td>
+                                    <td className="px-4 py-3 capitalize">{booking.newSupplier || '-'}</td>
+                                    <td className="px-4 py-3 text-sm">{booking.processedBy}</td>
+                                    <td className="px-4 py-3 text-sm">{new Date(booking.processedAt).toLocaleString()}</td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
+                                    No processed bookings yet
+                                </td>
+                            </tr>
                         )}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-        </Box>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     );
+
+    // Modal Component
+    const Modal = ({ open, onClose, title, children }) => {
+        if (!open) return null;
+
+        return (
+            <div className="fixed inset-0 z-50 overflow-y-auto">
+                <div className="flex items-center justify-center min-h-screen px-4">
+                    <div className="fixed inset-0 bg-black opacity-50" onClick={onClose}></div>
+                    <div className="relative bg-white rounded-lg max-w-md w-full p-6 shadow-xl">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-semibold">{title}</h3>
+                            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+                                <XMarkIcon className="h-6 w-6" />
+                            </button>
+                        </div>
+                        {children}
+                    </div>
+                </div>
+            </div>
+        );
+    };
 
     if (loading) {
         return (
-            <Box sx={{ p: 3 }}>
-                <LinearProgress />
-                <Typography sx={{ mt: 2 }}>Loading pending bookings...</Typography>
-            </Box>
+            <div className="p-6">
+                <div className="animate-pulse space-y-4">
+                    <div className="h-8 bg-gray-200 rounded w-1/3"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                    <div className="grid grid-cols-4 gap-4">
+                        {[1, 2, 3, 4].map(i => (
+                            <div key={i} className="h-24 bg-gray-200 rounded"></div>
+                        ))}
+                    </div>
+                </div>
+            </div>
         );
     }
 
     return (
-        <Box sx={{ p: 3 }}>
-            <Typography variant="h4" fontWeight="bold" gutterBottom>
-                Pending Bookings & Manual PNR Management
-            </Typography>
-            <Typography variant="body1" color="text.secondary" gutterBottom>
-                Manage bookings pending due to low supplier balance. Update PNR manually or rebook with alternative suppliers.
-            </Typography>
+        <div className="p-6">
+            <div className="mb-6">
+                <h1 className="text-2xl font-bold text-gray-800">Pending Bookings & Manual PNR Management</h1>
+                <p className="text-gray-600">Manage bookings pending due to low supplier balance. Update PNR manually or rebook with alternative suppliers.</p>
+            </div>
 
-            <Paper sx={{ mt: 3 }}>
-                <Tabs
-                    value={activeTab}
-                    onChange={(_, v) => setActiveTab(v)}
-                    sx={{ borderBottom: 1, borderColor: 'divider' }}
-                >
-                    <Tab
-                        label={
-                            <Badge badgeContent={overview?.totalPending || 0} color="warning">
-                                <Box sx={{ pr: 2 }}>Overview</Box>
-                            </Badge>
-                        }
-                    />
-                    <Tab
-                        label={
-                            <Badge badgeContent={pendingBookings.length} color="error">
-                                <Box sx={{ pr: 2 }}>Pending Bookings</Box>
-                            </Badge>
-                        }
-                    />
-                    <Tab label="Supplier Balances" />
-                    <Tab label="Processed History" />
-                </Tabs>
+            {/* Tabs */}
+            <div className="bg-white rounded-lg shadow">
+                <div className="border-b">
+                    <nav className="flex -mb-px">
+                        {[
+                            { id: 'overview', label: 'Overview', badge: overview?.totalPending },
+                            { id: 'pending', label: 'Pending Bookings', badge: pendingBookings.length },
+                            { id: 'balances', label: 'Supplier Balances' },
+                            { id: 'history', label: 'Processed History' }
+                        ].map((tab) => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`px-6 py-4 text-sm font-medium border-b-2 transition ${
+                                    activeTab === tab.id
+                                        ? 'border-blue-600 text-blue-600'
+                                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                                }`}
+                            >
+                                {tab.label}
+                                {tab.badge > 0 && (
+                                    <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
+                                        activeTab === tab.id ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
+                                    }`}>
+                                        {tab.badge}
+                                    </span>
+                                )}
+                            </button>
+                        ))}
+                    </nav>
+                </div>
 
-                <Box sx={{ p: 3 }}>
-                    {activeTab === 0 && <OverviewTab />}
-                    {activeTab === 1 && <PendingBookingsTab />}
-                    {activeTab === 2 && <SupplierBalancesTab />}
-                    {activeTab === 3 && <ProcessedHistoryTab />}
-                </Box>
-            </Paper>
+                <div className="p-6">
+                    {activeTab === 'overview' && <OverviewTab />}
+                    {activeTab === 'pending' && <PendingBookingsTab />}
+                    {activeTab === 'balances' && <SupplierBalancesTab />}
+                    {activeTab === 'history' && <ProcessedHistoryTab />}
+                </div>
+            </div>
 
-            {/* Update PNR Dialog */}
-            <Dialog open={pnrDialog.open} onClose={() => setPnrDialog({ open: false, booking: null })} maxWidth="sm" fullWidth>
-                <DialogTitle>Update PNR</DialogTitle>
-                <DialogContent>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
-                        Booking: {pnrDialog.booking?.bookingRef}
-                    </Typography>
-                    <TextField
-                        fullWidth
-                        label="PNR"
-                        value={pnrForm.pnr}
-                        onChange={(e) => setPnrForm({ ...pnrForm, pnr: e.target.value.toUpperCase() })}
-                        sx={{ mt: 2 }}
-                        placeholder="Enter 6-character PNR"
-                    />
-                    <TextField
-                        fullWidth
-                        label="Remarks"
-                        value={pnrForm.remarks}
-                        onChange={(e) => setPnrForm({ ...pnrForm, remarks: e.target.value })}
-                        sx={{ mt: 2 }}
-                        multiline
-                        rows={2}
-                        placeholder="Add any notes or remarks"
-                    />
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setPnrDialog({ open: false, booking: null })}>Cancel</Button>
-                    <Button variant="contained" onClick={handleUpdatePNR} disabled={!pnrForm.pnr}>
-                        Update PNR
-                    </Button>
-                </DialogActions>
-            </Dialog>
+            {/* Update PNR Modal */}
+            <Modal
+                open={pnrModal.open}
+                onClose={() => setPnrModal({ open: false, booking: null })}
+                title="Update PNR"
+            >
+                <div className="space-y-4">
+                    <p className="text-sm text-gray-600">Booking: {pnrModal.booking?.bookingRef}</p>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">PNR</label>
+                        <input
+                            type="text"
+                            value={pnrForm.pnr}
+                            onChange={(e) => setPnrForm({ ...pnrForm, pnr: e.target.value.toUpperCase() })}
+                            className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Enter 6-character PNR"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Remarks</label>
+                        <textarea
+                            value={pnrForm.remarks}
+                            onChange={(e) => setPnrForm({ ...pnrForm, remarks: e.target.value })}
+                            className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            rows={2}
+                            placeholder="Add any notes or remarks"
+                        />
+                    </div>
+                    <div className="flex gap-2 justify-end">
+                        <button
+                            onClick={() => setPnrModal({ open: false, booking: null })}
+                            className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleUpdatePNR}
+                            disabled={!pnrForm.pnr}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                        >
+                            Update PNR
+                        </button>
+                    </div>
+                </div>
+            </Modal>
 
-            {/* Rebook Dialog */}
-            <Dialog open={rebookDialog.open} onClose={() => setRebookDialog({ open: false, booking: null })} maxWidth="sm" fullWidth>
-                <DialogTitle>Rebook with Alternative Supplier</DialogTitle>
-                <DialogContent>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
-                        Booking: {rebookDialog.booking?.bookingRef}
-                    </Typography>
-                    <Alert severity="info" sx={{ my: 2 }}>
-                        Original Supplier: {rebookDialog.booking?.originalSupplier} ({rebookDialog.booking?.supplierStatus})
-                    </Alert>
-                    <FormControl fullWidth sx={{ mt: 2 }}>
-                        <InputLabel>Select Alternative Supplier</InputLabel>
-                        <Select
+            {/* Rebook Modal */}
+            <Modal
+                open={rebookModal.open}
+                onClose={() => setRebookModal({ open: false, booking: null })}
+                title="Rebook with Alternative Supplier"
+            >
+                <div className="space-y-4">
+                    <p className="text-sm text-gray-600">Booking: {rebookModal.booking?.bookingRef}</p>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm">
+                        Original Supplier: <span className="font-medium capitalize">{rebookModal.booking?.originalSupplier}</span>
+                        <span className={`ml-2 px-2 py-0.5 rounded text-xs ${getStatusBadge(rebookModal.booking?.supplierStatus)}`}>
+                            {rebookModal.booking?.supplierStatus}
+                        </span>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Select Alternative Supplier</label>
+                        <select
                             value={rebookForm.supplierId}
                             onChange={(e) => setRebookForm({ ...rebookForm, supplierId: e.target.value })}
-                            label="Select Alternative Supplier"
+                            className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
                         >
-                            {rebookDialog.booking?.alternativeSuppliers?.filter(s => s.available).map((supplier) => (
-                                <MenuItem key={supplier.id} value={supplier.id}>
+                            <option value="">Select supplier...</option>
+                            {rebookModal.booking?.alternativeSuppliers?.filter(s => s.available).map((supplier) => (
+                                <option key={supplier.id} value={supplier.id}>
                                     {supplier.name} - {formatCurrency(supplier.price)}
-                                    {supplier.price > rebookDialog.booking?.amount && (
-                                        <Chip label={`+${formatCurrency(supplier.price - rebookDialog.booking.amount)}`} size="small" color="warning" sx={{ ml: 1 }} />
-                                    )}
-                                </MenuItem>
+                                    {supplier.price > rebookModal.booking?.amount && ` (+${formatCurrency(supplier.price - rebookModal.booking.amount)})`}
+                                </option>
                             ))}
-                        </Select>
-                    </FormControl>
-                    <TextField
-                        fullWidth
-                        label="Notes"
-                        value={rebookForm.notes}
-                        onChange={(e) => setRebookForm({ ...rebookForm, notes: e.target.value })}
-                        sx={{ mt: 2 }}
-                        multiline
-                        rows={2}
-                    />
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setRebookDialog({ open: false, booking: null })}>Cancel</Button>
-                    <Button variant="contained" color="secondary" onClick={handleRebook} disabled={!rebookForm.supplierId}>
-                        Rebook Now
-                    </Button>
-                </DialogActions>
-            </Dialog>
-
-            {/* Cancel Dialog */}
-            <Dialog open={cancelDialog.open} onClose={() => setCancelDialog({ open: false, booking: null })} maxWidth="sm" fullWidth>
-                <DialogTitle>Cancel Pending Booking</DialogTitle>
-                <DialogContent>
-                    <Alert severity="warning" sx={{ mb: 2 }}>
-                        This will cancel the pending booking: {cancelDialog.booking?.bookingRef}
-                    </Alert>
-                    <TextField
-                        fullWidth
-                        label="Cancellation Reason"
-                        value={cancelForm.reason}
-                        onChange={(e) => setCancelForm({ ...cancelForm, reason: e.target.value })}
-                        multiline
-                        rows={2}
-                        required
-                    />
-                    <FormControl fullWidth sx={{ mt: 2 }}>
-                        <InputLabel>Refund to Wallet</InputLabel>
-                        <Select
-                            value={cancelForm.refundToWallet}
-                            onChange={(e) => setCancelForm({ ...cancelForm, refundToWallet: e.target.value })}
-                            label="Refund to Wallet"
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                        <textarea
+                            value={rebookForm.notes}
+                            onChange={(e) => setRebookForm({ ...rebookForm, notes: e.target.value })}
+                            className="w-full border rounded-lg px-3 py-2"
+                            rows={2}
+                        />
+                    </div>
+                    <div className="flex gap-2 justify-end">
+                        <button
+                            onClick={() => setRebookModal({ open: false, booking: null })}
+                            className="px-4 py-2 border rounded-lg hover:bg-gray-50"
                         >
-                            <MenuItem value={true}>Yes - Refund {formatCurrency(cancelDialog.booking?.amount || 0)}</MenuItem>
-                            <MenuItem value={false}>No Refund</MenuItem>
-                        </Select>
-                    </FormControl>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setCancelDialog({ open: false, booking: null })}>Back</Button>
-                    <Button variant="contained" color="error" onClick={handleCancel} disabled={!cancelForm.reason}>
-                        Confirm Cancellation
-                    </Button>
-                </DialogActions>
-            </Dialog>
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleRebook}
+                            disabled={!rebookForm.supplierId}
+                            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
+                        >
+                            Rebook Now
+                        </button>
+                    </div>
+                </div>
+            </Modal>
 
-            {/* Top-Up Dialog */}
-            <Dialog open={topUpDialog.open} onClose={() => setTopUpDialog({ open: false, supplier: null })} maxWidth="sm" fullWidth>
-                <DialogTitle>Top-Up Supplier Balance</DialogTitle>
-                <DialogContent>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
-                        Supplier: {topUpDialog.supplier?.name}
-                    </Typography>
-                    <Alert severity="info" sx={{ my: 2 }}>
-                        Current Balance: {formatCurrency(topUpDialog.supplier?.balance || 0)}
-                    </Alert>
-                    <FormControl fullWidth sx={{ mt: 2 }}>
-                        <InputLabel>Transaction Type</InputLabel>
-                        <Select
+            {/* Cancel Modal */}
+            <Modal
+                open={cancelModal.open}
+                onClose={() => setCancelModal({ open: false, booking: null })}
+                title="Cancel Pending Booking"
+            >
+                <div className="space-y-4">
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800">
+                        This will cancel the pending booking: {cancelModal.booking?.bookingRef}
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Cancellation Reason</label>
+                        <textarea
+                            value={cancelForm.reason}
+                            onChange={(e) => setCancelForm({ ...cancelForm, reason: e.target.value })}
+                            className="w-full border rounded-lg px-3 py-2"
+                            rows={2}
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Refund to Wallet</label>
+                        <select
+                            value={cancelForm.refundToWallet}
+                            onChange={(e) => setCancelForm({ ...cancelForm, refundToWallet: e.target.value === 'true' })}
+                            className="w-full border rounded-lg px-3 py-2"
+                        >
+                            <option value="true">Yes - Refund {formatCurrency(cancelModal.booking?.amount || 0)}</option>
+                            <option value="false">No Refund</option>
+                        </select>
+                    </div>
+                    <div className="flex gap-2 justify-end">
+                        <button
+                            onClick={() => setCancelModal({ open: false, booking: null })}
+                            className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+                        >
+                            Back
+                        </button>
+                        <button
+                            onClick={handleCancel}
+                            disabled={!cancelForm.reason}
+                            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+                        >
+                            Confirm Cancellation
+                        </button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Top-Up Modal */}
+            <Modal
+                open={topUpModal.open}
+                onClose={() => setTopUpModal({ open: false, supplier: null })}
+                title="Top-Up Supplier Balance"
+            >
+                <div className="space-y-4">
+                    <p className="text-sm text-gray-600">Supplier: {topUpModal.supplier?.name}</p>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm">
+                        Current Balance: <span className="font-bold">{formatCurrency(topUpModal.supplier?.balance || 0)}</span>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Transaction Type</label>
+                        <select
                             value={topUpForm.type}
                             onChange={(e) => setTopUpForm({ ...topUpForm, type: e.target.value })}
-                            label="Transaction Type"
+                            className="w-full border rounded-lg px-3 py-2"
                         >
-                            <MenuItem value="credit">Credit (Add Balance)</MenuItem>
-                            <MenuItem value="debit">Debit (Deduct Balance)</MenuItem>
-                        </Select>
-                    </FormControl>
-                    <TextField
-                        fullWidth
-                        label="Amount"
-                        type="number"
-                        value={topUpForm.amount}
-                        onChange={(e) => setTopUpForm({ ...topUpForm, amount: parseFloat(e.target.value) || 0 })}
-                        sx={{ mt: 2 }}
-                        InputProps={{
-                            startAdornment: <InputAdornment position="start">₹</InputAdornment>
-                        }}
-                    />
-                    <TextField
-                        fullWidth
-                        label="Reference Number"
-                        value={topUpForm.reference}
-                        onChange={(e) => setTopUpForm({ ...topUpForm, reference: e.target.value })}
-                        sx={{ mt: 2 }}
-                        placeholder="Transaction reference or UTR"
-                    />
-                    {topUpForm.amount > 0 && (
-                        <Alert severity="success" sx={{ mt: 2 }}>
-                            New Balance: {formatCurrency((topUpDialog.supplier?.balance || 0) + (topUpForm.type === 'credit' ? topUpForm.amount : -topUpForm.amount))}
-                        </Alert>
+                            <option value="credit">Credit (Add Balance)</option>
+                            <option value="debit">Debit (Deduct Balance)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                        <div className="relative">
+                            <span className="absolute left-3 top-2 text-gray-500">₹</span>
+                            <input
+                                type="number"
+                                value={topUpForm.amount}
+                                onChange={(e) => setTopUpForm({ ...topUpForm, amount: e.target.value })}
+                                className="w-full border rounded-lg pl-8 pr-3 py-2"
+                                placeholder="Enter amount"
+                            />
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Reference Number</label>
+                        <input
+                            type="text"
+                            value={topUpForm.reference}
+                            onChange={(e) => setTopUpForm({ ...topUpForm, reference: e.target.value })}
+                            className="w-full border rounded-lg px-3 py-2"
+                            placeholder="Transaction reference or UTR"
+                        />
+                    </div>
+                    {parseFloat(topUpForm.amount) > 0 && (
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-800">
+                            New Balance: {formatCurrency(
+                                (topUpModal.supplier?.balance || 0) +
+                                (topUpForm.type === 'credit' ? parseFloat(topUpForm.amount) : -parseFloat(topUpForm.amount))
+                            )}
+                        </div>
                     )}
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setTopUpDialog({ open: false, supplier: null })}>Cancel</Button>
-                    <Button variant="contained" onClick={handleTopUp} disabled={topUpForm.amount <= 0}>
-                        {topUpForm.type === 'credit' ? 'Add Balance' : 'Deduct Balance'}
-                    </Button>
-                </DialogActions>
-            </Dialog>
-        </Box>
+                    <div className="flex gap-2 justify-end">
+                        <button
+                            onClick={() => setTopUpModal({ open: false, supplier: null })}
+                            className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleTopUp}
+                            disabled={!topUpForm.amount || parseFloat(topUpForm.amount) <= 0}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                        >
+                            {topUpForm.type === 'credit' ? 'Add Balance' : 'Deduct Balance'}
+                        </button>
+                    </div>
+                </div>
+            </Modal>
+        </div>
     );
 };
 
