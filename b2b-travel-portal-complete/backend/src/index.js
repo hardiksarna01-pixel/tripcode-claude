@@ -95,6 +95,8 @@ app.use(`${apiPrefix}/admin/whitelabel`, require('./routes/admin/whitelabel.rout
 app.use(`${apiPrefix}/admin/templates`, require('./routes/admin/template.routes'));
 app.use(`${apiPrefix}/admin/api-keys`, require('./routes/admin/api-key.routes'));
 app.use(`${apiPrefix}/admin/commissions`, require('./routes/admin/commission.routes'));
+app.use(`${apiPrefix}/admin/pending-bookings`, require('./routes/admin/pending-bookings.routes'));
+app.use(`${apiPrefix}/admin/channel-distribution`, require('./routes/admin/channel-distribution.routes'));
 
 // Super Admin Routes
 app.use(`${apiPrefix}/superadmin`, require('./routes/superadmin.routes'));

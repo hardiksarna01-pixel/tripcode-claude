@@ -108,6 +108,7 @@ import AdminCertificateTemplates from './pages/admin/CertificateTemplates';
 import AdminCertificationRevenue from './pages/admin/CertificationRevenue';
 import AdminGroups from './pages/admin/Groups';
 import AdminSchemes from './pages/admin/Schemes';
+import PendingBookings from './pages/admin/PendingBookings';
 
 // Admin Whitelabel Pages
 import { Branding, Themes, DomainSettings, CustomPages, WhitelabelDashboard } from './pages/admin/whitelabel';
@@ -389,6 +390,9 @@ function App() {
                                 <Route path="pnr/history" element={<PNRHistory />} />
                                 <Route path="pnr/notifications" element={<PNRNotifications />} />
 
+                                {/* Pending Bookings & Manual Rebooking */}
+                                <Route path="pending-bookings" element={<PendingBookings />} />
+
                                 {/* Admin Whitelabel Routes */}
                                 <Route path="whitelabel" element={<WhitelabelDashboard />} />
                                 <Route path="whitelabel/b2b" element={<WhitelabelDashboard />} />
@@ -447,6 +451,9 @@ function App() {
                                 <Route path="pnr/void" element={<PNRManagement />} />
                                 <Route path="pnr/history" element={<PNRHistory />} />
                                 <Route path="pnr/notifications" element={<PNRNotifications />} />
+
+                                {/* Pending Bookings & Manual Rebooking */}
+                                <Route path="pending-bookings" element={<PendingBookings />} />
 
                                 {/* Super Admin Whitelabel Routes */}
                                 <Route path="whitelabel" element={<WhitelabelDashboard />} />

@@ -45,7 +45,10 @@ import {
     NoSymbolIcon,
     ClockIcon,
     RocketLaunchIcon,
-    Square3Stack3DIcon
+    Square3Stack3DIcon,
+    ExclamationTriangleIcon,
+    WalletIcon,
+    ArrowsRightLeftIcon
 } from '@heroicons/react/24/outline';
 import './AdminLayout.css';
 
@@ -96,6 +99,14 @@ const AdminLayout = ({ isSuperAdmin = false }) => {
                 { name: 'VOID Requests', path: '/admin/pnr/void', icon: NoSymbolIcon },
                 { name: 'PNR History', path: '/admin/pnr/history', icon: ChartBarIcon },
                 { name: 'PNR Notifications', path: '/admin/pnr/notifications', icon: BellIcon },
+            ]
+        },
+        {
+            title: 'Pending Operations',
+            items: [
+                { name: 'Pending Bookings', path: '/admin/pending-bookings', icon: ExclamationTriangleIcon },
+                { name: 'Supplier Balances', path: '/admin/pending-bookings?tab=balances', icon: WalletIcon },
+                { name: 'Manual Rebooking', path: '/admin/pending-bookings?tab=rebook', icon: ArrowsRightLeftIcon },
             ]
         },
         {
@@ -198,6 +209,14 @@ const AdminLayout = ({ isSuperAdmin = false }) => {
             title: 'Channel Distribution',
             items: [
                 { name: 'Distribution Manager', path: '/superadmin/channel-distribution', icon: ServerIcon },
+            ]
+        },
+        {
+            title: 'Pending Operations',
+            items: [
+                { name: 'Pending Bookings', path: '/superadmin/pending-bookings', icon: ExclamationTriangleIcon },
+                { name: 'Supplier Balances', path: '/superadmin/pending-bookings?tab=balances', icon: WalletIcon },
+                { name: 'Manual Rebooking', path: '/superadmin/pending-bookings?tab=rebook', icon: ArrowsRightLeftIcon },
             ]
         },
         {
