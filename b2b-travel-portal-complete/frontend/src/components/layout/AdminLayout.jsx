@@ -195,6 +195,12 @@ const AdminLayout = ({ isSuperAdmin = false }) => {
             ]
         },
         {
+            title: 'Channel Distribution',
+            items: [
+                { name: 'Distribution Manager', path: '/superadmin/channel-distribution', icon: ServerIcon },
+            ]
+        },
+        {
             title: 'System',
             items: [
                 { name: 'Global Settings', path: '/superadmin/settings', icon: Cog6ToothIcon },

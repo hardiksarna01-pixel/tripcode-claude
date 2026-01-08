@@ -153,6 +153,7 @@ import SuperAdminAuditLogs from './pages/superadmin/AuditLogs';
 import SuperAdminFeatureFlags from './pages/superadmin/FeatureFlags';
 import SuperAdminAnnouncements from './pages/superadmin/Announcements';
 import SuperAdminAnalytics from './pages/superadmin/Analytics';
+import ChannelDistribution from './pages/superadmin/ChannelDistribution';
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -428,6 +429,7 @@ function App() {
                                 <Route path="feature-flags" element={<SuperAdminFeatureFlags />} />
                                 <Route path="announcements" element={<SuperAdminAnnouncements />} />
                                 <Route path="analytics" element={<SuperAdminAnalytics />} />
+                                <Route path="channel-distribution" element={<ChannelDistribution />} />
 
                                 {/* Super Admin AI Tools */}
                                 <Route path="ai/chatbot" element={<AIChatbot />} />
