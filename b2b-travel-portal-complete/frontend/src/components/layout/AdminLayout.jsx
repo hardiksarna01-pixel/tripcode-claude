@@ -43,7 +43,9 @@ import {
     CalendarDaysIcon,
     XCircleIcon,
     NoSymbolIcon,
-    ClockIcon
+    ClockIcon,
+    RocketLaunchIcon,
+    Square3Stack3DIcon
 } from '@heroicons/react/24/outline';
 import './AdminLayout.css';
 
@@ -138,6 +140,9 @@ const AdminLayout = ({ isSuperAdmin = false }) => {
         {
             title: 'Whitelabel Solutions',
             items: [
+                { name: 'Template Gallery', path: '/admin/whitelabel', icon: Square3Stack3DIcon },
+                { name: 'B2B Templates', path: '/admin/whitelabel/b2b', icon: BuildingOfficeIcon },
+                { name: 'B2C Templates', path: '/admin/whitelabel/b2c', icon: UserGroupIcon },
                 { name: 'Branding', path: '/admin/whitelabel/branding', icon: PaintBrushIcon },
                 { name: 'Themes', path: '/admin/whitelabel/themes', icon: SwatchIcon },
                 { name: 'Domain Settings', path: '/admin/whitelabel/domain', icon: GlobeAltIcon },
@@ -222,7 +227,10 @@ const AdminLayout = ({ isSuperAdmin = false }) => {
         {
             title: 'Whitelabel Solutions',
             items: [
-                { name: 'Tenant Branding', path: '/superadmin/whitelabel/tenants', icon: BuildingOfficeIcon },
+                { name: 'Template Gallery', path: '/superadmin/whitelabel', icon: Square3Stack3DIcon },
+                { name: 'B2B Templates', path: '/superadmin/whitelabel/b2b', icon: BuildingOfficeIcon },
+                { name: 'B2C Templates', path: '/superadmin/whitelabel/b2c', icon: UserGroupIcon },
+                { name: 'Tenant Branding', path: '/superadmin/whitelabel/tenants', icon: RocketLaunchIcon },
                 { name: 'Platform Branding', path: '/superadmin/whitelabel/platform', icon: PaintBrushIcon },
                 { name: 'Theme Management', path: '/superadmin/whitelabel/themes', icon: SwatchIcon },
                 { name: 'Domain Management', path: '/superadmin/whitelabel/domains', icon: GlobeAltIcon },
@@ -233,7 +241,6 @@ const AdminLayout = ({ isSuperAdmin = false }) => {
             title: 'API Solutions',
             items: [
                 { name: 'Integration Hub', path: '/superadmin/api/hub', icon: ServerIcon },
-                { name: 'API Gateway', path: '/superadmin/api/gateway', icon: GlobeAltIcon },
                 { name: 'API Keys Management', path: '/superadmin/api/keys', icon: KeyIcon },
                 { name: 'Rate Limiting', path: '/superadmin/api/rate-limits', icon: ShieldCheckIcon },
                 { name: 'API Documentation', path: '/superadmin/api/docs', icon: CodeBracketIcon },

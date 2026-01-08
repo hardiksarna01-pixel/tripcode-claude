@@ -110,7 +110,7 @@ import AdminGroups from './pages/admin/Groups';
 import AdminSchemes from './pages/admin/Schemes';
 
 // Admin Whitelabel Pages
-import { Branding, Themes, DomainSettings, CustomPages } from './pages/admin/whitelabel';
+import { Branding, Themes, DomainSettings, CustomPages, WhitelabelDashboard } from './pages/admin/whitelabel';
 
 // Admin API Pages
 import { ApiKeys, ApiDocumentation, Webhooks, Integrations, IntegrationHub } from './pages/admin/api';
@@ -389,6 +389,9 @@ function App() {
                                 <Route path="pnr/notifications" element={<PNRNotifications />} />
 
                                 {/* Admin Whitelabel Routes */}
+                                <Route path="whitelabel" element={<WhitelabelDashboard />} />
+                                <Route path="whitelabel/b2b" element={<WhitelabelDashboard />} />
+                                <Route path="whitelabel/b2c" element={<WhitelabelDashboard />} />
                                 <Route path="whitelabel/branding" element={<Branding />} />
                                 <Route path="whitelabel/themes" element={<Themes />} />
                                 <Route path="whitelabel/domain" element={<DomainSettings />} />
@@ -444,7 +447,10 @@ function App() {
                                 <Route path="pnr/notifications" element={<PNRNotifications />} />
 
                                 {/* Super Admin Whitelabel Routes */}
-                                <Route path="whitelabel/tenants" element={<Branding />} />
+                                <Route path="whitelabel" element={<WhitelabelDashboard />} />
+                                <Route path="whitelabel/b2b" element={<WhitelabelDashboard />} />
+                                <Route path="whitelabel/b2c" element={<WhitelabelDashboard />} />
+                                <Route path="whitelabel/tenants" element={<WhitelabelDashboard />} />
                                 <Route path="whitelabel/platform" element={<Branding />} />
                                 <Route path="whitelabel/themes" element={<Themes />} />
                                 <Route path="whitelabel/domains" element={<DomainSettings />} />
