@@ -12,6 +12,7 @@ const { validate, authSchemas } = require('../middleware/validation.middleware')
 router.post('/login', validate(authSchemas.login), adminAuthController.login);
 router.post('/forgot-password', validate(authSchemas.forgotPassword), adminAuthController.forgotPassword);
 router.post('/reset-password', validate(authSchemas.resetPassword), adminAuthController.resetPassword);
+router.post('/refresh-token', adminAuthController.refreshToken);
 
 // Protected admin routes
 router.use(authenticateAdmin);
@@ -19,6 +20,5 @@ router.get('/me', adminAuthController.getProfile);
 router.put('/profile', adminAuthController.updateProfile);
 router.put('/change-password', validate(authSchemas.changePassword), adminAuthController.changePassword);
 router.post('/logout', adminAuthController.logout);
-router.post('/refresh-token', adminAuthController.refreshToken);
 
 module.exports = router;

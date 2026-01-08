@@ -92,6 +92,7 @@ export const AuthProvider = ({ children }) => {
 
         localStorage.setItem('accessToken', accessToken);
         localStorage.setItem('refreshToken', refreshToken);
+        localStorage.setItem('user', JSON.stringify(userData));
         setUser(userData);
 
         return userData;
@@ -108,6 +109,7 @@ export const AuthProvider = ({ children }) => {
 
         localStorage.setItem('adminAccessToken', accessToken);
         localStorage.setItem('adminRefreshToken', refreshToken);
+        localStorage.setItem('admin', JSON.stringify(adminData));
         setAdmin(adminData);
 
         return adminData;
@@ -116,12 +118,14 @@ export const AuthProvider = ({ children }) => {
     const logout = () => {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
         setUser(null);
     };
 
     const adminLogout = () => {
         localStorage.removeItem('adminAccessToken');
         localStorage.removeItem('adminRefreshToken');
+        localStorage.removeItem('admin');
         setAdmin(null);
     };
 

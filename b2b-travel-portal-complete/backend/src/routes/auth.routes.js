@@ -15,6 +15,7 @@ router.post('/forgot-password', validate(authSchemas.forgotPassword), authContro
 router.post('/reset-password', validate(authSchemas.resetPassword), authController.resetPassword);
 router.post('/verify-otp', authController.verifyOtp);
 router.post('/resend-otp', authController.resendOtp);
+router.post('/refresh-token', authController.refreshToken);
 
 // Protected routes
 router.use(authenticate);
@@ -22,6 +23,5 @@ router.get('/me', authController.getProfile);
 router.put('/profile', authController.updateProfile);
 router.put('/change-password', validate(authSchemas.changePassword), authController.changePassword);
 router.post('/logout', authController.logout);
-router.post('/refresh-token', authController.refreshToken);
 
 module.exports = router;
