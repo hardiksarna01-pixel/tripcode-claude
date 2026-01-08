@@ -147,10 +147,11 @@ const AdminLayout = ({ isSuperAdmin = false }) => {
         {
             title: 'API Solutions',
             items: [
+                { name: 'Integration Hub', path: '/admin/api/hub', icon: ServerIcon },
                 { name: 'API Keys', path: '/admin/api/keys', icon: KeyIcon },
                 { name: 'API Documentation', path: '/admin/api/docs', icon: CodeBracketIcon },
                 { name: 'Webhooks', path: '/admin/api/webhooks', icon: LinkIcon },
-                { name: 'Integrations', path: '/admin/api/integrations', icon: ServerIcon },
+                { name: 'Integrations', path: '/admin/api/integrations', icon: CommandLineIcon },
             ]
         },
         {
@@ -231,7 +232,8 @@ const AdminLayout = ({ isSuperAdmin = false }) => {
         {
             title: 'API Solutions',
             items: [
-                { name: 'API Gateway', path: '/superadmin/api/gateway', icon: ServerIcon },
+                { name: 'Integration Hub', path: '/superadmin/api/hub', icon: ServerIcon },
+                { name: 'API Gateway', path: '/superadmin/api/gateway', icon: GlobeAltIcon },
                 { name: 'API Keys Management', path: '/superadmin/api/keys', icon: KeyIcon },
                 { name: 'Rate Limiting', path: '/superadmin/api/rate-limits', icon: ShieldCheckIcon },
                 { name: 'API Documentation', path: '/superadmin/api/docs', icon: CodeBracketIcon },

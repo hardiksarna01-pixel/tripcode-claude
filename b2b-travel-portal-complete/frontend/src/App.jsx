@@ -113,7 +113,7 @@ import AdminSchemes from './pages/admin/Schemes';
 import { Branding, Themes, DomainSettings, CustomPages } from './pages/admin/whitelabel';
 
 // Admin API Pages
-import { ApiKeys, ApiDocumentation, Webhooks, Integrations } from './pages/admin/api';
+import { ApiKeys, ApiDocumentation, Webhooks, Integrations, IntegrationHub } from './pages/admin/api';
 
 // Admin PNR Pages
 import { PNRManagement, PNRHistory, PNRNotifications } from './pages/admin/pnr';
@@ -395,6 +395,7 @@ function App() {
                                 <Route path="whitelabel/pages" element={<CustomPages />} />
 
                                 {/* Admin API Routes */}
+                                <Route path="api/hub" element={<IntegrationHub />} />
                                 <Route path="api/keys" element={<ApiKeys />} />
                                 <Route path="api/docs" element={<ApiDocumentation />} />
                                 <Route path="api/webhooks" element={<Webhooks />} />
@@ -450,7 +451,8 @@ function App() {
                                 <Route path="whitelabel/templates" element={<CustomPages />} />
 
                                 {/* Super Admin API Routes */}
-                                <Route path="api/gateway" element={<Integrations />} />
+                                <Route path="api/hub" element={<IntegrationHub />} />
+                                <Route path="api/gateway" element={<IntegrationHub />} />
                                 <Route path="api/keys" element={<ApiKeys />} />
                                 <Route path="api/rate-limits" element={<ApiDocumentation />} />
                                 <Route path="api/docs" element={<ApiDocumentation />} />
