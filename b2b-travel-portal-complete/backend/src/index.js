@@ -11,20 +11,76 @@ const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const config = require('./config');
 
+// Import Security Modules
+const {
+    rateLimiters,
+    securityHeaders,
+    sanitizeInput,
+    preventSQLInjection,
+    DDoSProtection,
+    AuditLogger,
+    HealthMonitor
+} = require('./security');
+
+// Import Auth Middleware
+const { authenticateAdmin, authenticateSuperAdmin } = require('./middleware/auth.middleware');
+
+// Validate critical security configuration
+if (config.server.env === 'production') {
+    if (config.jwt.secret === 'your-super-secret-jwt-key' ||
+        config.jwt.adminSecret === 'your-admin-secret-key') {
+        console.error('CRITICAL SECURITY ERROR: Default JWT secrets detected in production!');
+        console.error('Please set JWT_SECRET and ADMIN_JWT_SECRET environment variables.');
+        process.exit(1);
+    }
+    if (config.encryption.key === 'your-32-character-secret-key!!') {
+        console.error('CRITICAL SECURITY ERROR: Default encryption key detected in production!');
+        console.error('Please set ENCRYPTION_KEY environment variable.');
+        process.exit(1);
+    }
+}
+
 // Initialize Express App
 const app = express();
 
-// Security Middleware
-app.use(helmet());
+// Trust proxy (for correct IP detection behind load balancers)
+app.set('trust proxy', 1);
+
+// Security Middleware - Enhanced
+app.use(securityHeaders);
 app.use(cors(config.cors));
 
-// Rate Limiting
-const limiter = rateLimit(config.rateLimit);
-app.use('/api/', limiter);
+// DDoS Protection
+app.use(DDoSProtection.middleware());
+
+// Health Monitoring
+app.use(HealthMonitor.getMiddleware());
+
+// Audit Logging (for non-health endpoints)
+app.use((req, res, next) => {
+    if (!req.path.includes('/health')) {
+        AuditLogger.getAuditMiddleware()(req, res, next);
+    } else {
+        next();
+    }
+});
+
+// Rate Limiting - Tiered
+app.use('/api/v1/auth', rateLimiters.auth);
+app.use('/api/v1/admin/auth', rateLimiters.auth);
+app.use('/api/v1/flights/search', rateLimiters.search);
+app.use('/api/v1/hotels/search', rateLimiters.search);
+app.use('/api/v1/bookings', rateLimiters.booking);
+app.use('/api/v1/ai', rateLimiters.ai);
+app.use('/api/', rateLimiters.general);
 
 // Request Parsing
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Input Sanitization & SQL Injection Prevention
+app.use(sanitizeInput);
+app.use(preventSQLInjection);
 
 // Compression
 app.use(compression());
@@ -43,15 +99,58 @@ app.get('/health', (req, res) => {
     });
 });
 
+// Security Health Check (admin only - provides security status)
+app.get('/api/v1/admin/security/health', authenticateAdmin, (req, res) => {
+    const securityStatus = {
+        status: 'secure',
+        timestamp: new Date().toISOString(),
+        checks: {
+            authentication: 'enabled',
+            rateLimiting: 'enabled',
+            ddosProtection: 'enabled',
+            inputSanitization: 'enabled',
+            sqlInjectionPrevention: 'enabled',
+            xssProtection: 'enabled',
+            securityHeaders: 'enabled',
+            auditLogging: 'enabled',
+            encryption: config.server.env === 'production' ? 'enforced' : 'development-mode'
+        },
+        healthMetrics: HealthMonitor.getHealth(),
+        warnings: []
+    };
+
+    // Add warnings for development mode
+    if (config.server.env !== 'production') {
+        securityStatus.warnings.push('Running in development mode - security checks relaxed');
+        if (config.jwt.secret === 'your-super-secret-jwt-key') {
+            securityStatus.warnings.push('Using default JWT secret - change for production');
+        }
+    }
+
+    res.json(securityStatus);
+});
+
 // =====================================================
 // API ROUTES
 // =====================================================
 
 const apiPrefix = config.server.apiPrefix;
 
-// Authentication Routes
+// Authentication Routes (Public - no auth required)
 app.use(`${apiPrefix}/auth`, require('./routes/auth.routes'));
 app.use(`${apiPrefix}/admin/auth`, require('./routes/admin-auth.routes'));
+
+// Apply admin authentication middleware to ALL admin routes (except auth)
+app.use(`${apiPrefix}/admin`, (req, res, next) => {
+    // Skip auth routes
+    if (req.path.startsWith('/auth')) {
+        return next();
+    }
+    authenticateAdmin(req, res, next);
+});
+
+// Apply super admin authentication to super admin routes
+app.use(`${apiPrefix}/superadmin`, authenticateSuperAdmin);
 
 // Agent Routes
 app.use(`${apiPrefix}/agents`, require('./routes/agent.routes'));

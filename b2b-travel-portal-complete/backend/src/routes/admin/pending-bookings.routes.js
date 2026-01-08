@@ -7,6 +7,10 @@
 const express = require('express');
 const router = express.Router();
 const pendingBookingsController = require('../../controllers/admin/pending-bookings.controller');
+const { authenticateAdmin } = require('../../middleware/auth.middleware');
+
+// Apply admin authentication to all routes
+router.use(authenticateAdmin);
 
 // Overview
 router.get('/overview', pendingBookingsController.getPendingOverview);

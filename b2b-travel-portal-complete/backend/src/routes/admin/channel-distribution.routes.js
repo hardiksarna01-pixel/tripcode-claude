@@ -6,6 +6,10 @@
 const express = require('express');
 const router = express.Router();
 const channelDistributionController = require('../../controllers/admin/channel-distribution.controller');
+const { authenticateSuperAdmin } = require('../../middleware/auth.middleware');
+
+// Apply super admin authentication to all routes (channel distribution is super admin only)
+router.use(authenticateSuperAdmin);
 
 // Overview
 router.get('/overview', channelDistributionController.getDistributionOverview);
