@@ -1,0 +1,20 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["start"],
+      "cwd": "b2b-travel-portal-complete/frontend",
+      "port": 3000
+    },
+    {
+      "name": "backend",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["src/index.js"],
+      "cwd": "b2b-travel-portal-complete/backend",
+      "port": 3001,
+      "env": { "NODE_ENV": "development" }
+    }
+  ]
+}
